@@ -117,7 +117,21 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+# Django가 정적 파일을 찾을 실제 디렉토리 경로
+# 현재 server/static 폴더에 정적 파일(css, js 등)이 저장되어 있다는 뜻
+STATICFILES_DIRS = [
+    BASE_DIR / 'static'
+]
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# 미디어 파일 URL 설정 (업로드된 파일에 접근할 때 사용)
+MEDIA_URL = '/media/'
+
+# 사용자 업로드 파일(예: 이미지 파일 등)을 저장할 실제 경로
+# 예: MEDIA_ROOT에 저장된 이미지 → /static/images/ 내에 파일 저장됨
+MEDIA_ROOT = BASE_DIR / 'static' / 'images'
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
