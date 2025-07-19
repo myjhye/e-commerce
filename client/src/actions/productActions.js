@@ -7,11 +7,16 @@ import {
 
 
 // 상품 목록 조회 액션 (검색어 포함 가능)
-export const listProducts = (keyword = '') => async (dispatch) => {
+export const listProducts = (queryString = '') => async (dispatch) => {
   try {
     dispatch({ type: PRODUCT_LIST_REQUEST })
 
-    const url = keyword ? `/api/products/?keyword=${keyword}` : '/api/products/'
+    let url = '/api/products/'
+    
+    if (queryString) {
+      url += queryString.startsWith('?') ? queryString : `?${queryString}` // queryString이 ?로 시작하면 그대로 사용, 아니면 ?를 붙임
+    }
+
     const { data } = await axios.get(url)
 
     dispatch({
