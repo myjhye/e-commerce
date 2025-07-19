@@ -1,9 +1,23 @@
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Row, Col, Card } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { Col, Row, Card } from "react-bootstrap";
-import products from "../products";
+
 import Rating from "../components/Rating";
+import { listProducts } from "../actions/productActions";
 
 export default function HomeScreen() {
+  const dispatch = useDispatch();
+
+  // Redux 스토어에서 상태 읽어오기
+  const productList = useSelector((state) => state.productList)
+  const { loading, error, products = [] } = productList
+
+  // 컴포넌트가 처음 렌더링될 때 상품 목록 요청
+  useEffect(() => {
+    dispatch(listProducts());
+  }, [dispatch]);
+
   return (
     <div>
       <h1>Latest Products</h1>
