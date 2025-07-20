@@ -88,7 +88,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 # DRF 설정
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 5, # 페이징
+    'PAGE_SIZE': 8, # 페이징
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
