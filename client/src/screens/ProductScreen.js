@@ -1,15 +1,24 @@
 import { Link, useParams } from 'react-router-dom'
 import { Row, Col, Image, ListGroup, Button, Card, Form } from 'react-bootstrap'
 import Rating from '../components/Rating'
-import products from "../products";
+import { useDispatch, useSelector } from 'react-redux'
+import { listProductDetails } from '../actions/productActions';
+import { useEffect } from 'react';
 
 export default function ProductScreen() {
     const { id } = useParams();
-    const product = products.find((p) => p._id === id);
+    const dispatch = useDispatch();
 
-    if (!product) {
-        return <div>Product not found</div>;
-    }
+    const productDetails = useSelector((state) => state.productDetails); // 상품 상세 리덕스 상태 가져오기
+    const { loading, error, product } = productDetails;
+
+    // 상품 상세 데이터 요청
+    useEffect(() => { 
+        dispatch(listProductDetails(id))
+    }, [dispatch, id]);
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
 
     return (
         <div>

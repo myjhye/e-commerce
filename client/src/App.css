@@ -22,7 +22,7 @@ footer {
   background-color: #343a40;
   color: white;
   margin-top: auto;
-  padding: 1rem 0;
+  padding: 0.1rem 0;
 }
 
 /* 링크 기본 스타일 제거 */
@@ -34,4 +34,32 @@ a {
 a:hover {
   text-decoration: none;
   color: inherit;
+}
+
+/* 반응형 대응 */
+@media (max-width: 768px) {
+  footer {
+    padding: 0.3rem 0;
+  }
+  
+  main {
+    padding: 0.5rem 0;
+  }
+}
+
+/* 카드 호버 효과 */
+.card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* 페이지네이션 중앙 정렬 */
+.pagination {
+  justify-content: center;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
 }
