@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -7,6 +8,33 @@ SECRET_KEY = 'django-insecure-e3xpxb9^rc7l62+w&wbwahiii=at&3%lcszjgat)gr^hwok@*s
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': False,
+
+    'ALGORITHM': 'HS256',
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+
+    'JTI_CLAIM': 'jti',
+
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+}
 
 # Application definition
 INSTALLED_APPS = [
@@ -20,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework',  # DRF 추가
     'corsheaders',     # CORS 허용
     'base',            # 사용자 앱
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -68,6 +97,15 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# DRF 설정
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 8, # 페이징
+    'DEFAULT_AUTHENTICATION_CLASSES': ( # 모든 API 요청에서 기본적으로 Authorization: Bearer <토큰> 헤더를 사용한 JWT 인증을 수행
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
 # Localization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Seoul'
@@ -85,12 +123,7 @@ MEDIA_ROOT = BASE_DIR / 'static' / 'images'
 # CORS 설정
 CORS_ALLOW_ALL_ORIGINS = True
 
-# DRF 설정
-REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 8, # 페이징
-}
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 APPEND_SLASH = True
+
