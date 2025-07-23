@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'corsheaders',     # CORS 허용
     'base',            # 사용자 앱
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist', # 블랙리스트
 ]
 
 MIDDLEWARE = [
