@@ -35,15 +35,3 @@ class UserSerializer(serializers.ModelSerializer):
             name = obj.email # 이름이 비어있으면 email 사용
 
         return name
-
-
-# 사용자 정보 + access token까지 함께 반환하는 시리얼라이저
-class UserSerializerWithToken(UserSerializer):
-    class Meta:
-        model = User
-        fields = ['id', '_id', 'username', 'email', 'name', 'isAdmin'] # UserSerializer의 필드에 token 추가
-
-    # token 필드에 들어갈 값 생성 (access token)
-    def get_token(self, obj):
-        token = RefreshToken.for_user(obj) # 해당 유저 기반으로 refresh token 생성
-        return str(token.access_token) # access token만 추출해서 문자열로 반환
