@@ -6,10 +6,12 @@ import Header from './components/Header';
 import HomeScreen from './screens/HomeScreen'
 import ProductScreen from './screens/ProductScreen';
 import LoginScreen from './screens/LoginScreen';
+import RegisterScreen from './screens/RegisterScreen';
 
 import { Provider } from 'react-redux'
 import store from './store'
 import './utils/axiosConfig' // axios interceptor 설정
+
 
 function App() {
   return (
@@ -23,6 +25,7 @@ function App() {
                 <Route path='/' element={<HomeScreen />} />
                 <Route path='/product/:id' element={<ProductScreen />} />
                 <Route path='/login' element={<LoginScreen />} />
+                <Route path='/register' element={<RegisterScreen />} />
               </Routes>
             </Container>
           </main>
