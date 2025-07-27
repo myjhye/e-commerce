@@ -11,6 +11,7 @@ import RegisterScreen from './screens/RegisterScreen';
 import { Provider } from 'react-redux'
 import store from './store'
 import './utils/axiosConfig' // axios interceptor 설정
+import ProductCreateScreen from './screens/ProductCreateScreen';
 
 
 function App() {
@@ -23,9 +24,12 @@ function App() {
             <Container>
               <Routes>
                 <Route path='/' element={<HomeScreen />} />
-                <Route path='/product/:id' element={<ProductScreen />} />
+                
                 <Route path='/login' element={<LoginScreen />} />
                 <Route path='/register' element={<RegisterScreen />} />
+                
+                <Route path='/product/:id' element={<ProductScreen />} />
+                <Route path='/product-create' element={<ProductCreateScreen />} />
               </Routes>
             </Container>
           </main>
