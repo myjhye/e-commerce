@@ -1,9 +1,13 @@
 from pathlib import Path
 from datetime import timedelta
+from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-e3xpxb9^rc7l62+w&wbwahiii=at&3%lcszjgat)gr^hwok@*s'
+
+# OpenAI 설정
+OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
 
 DEBUG = True
 
@@ -119,7 +123,7 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'static' / 'images'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # CORS 설정
 CORS_ALLOW_ALL_ORIGINS = True

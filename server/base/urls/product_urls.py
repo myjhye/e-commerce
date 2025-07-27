@@ -3,5 +3,6 @@ from base.views import product_views as views # 실제 비즈니스 로직이 �
 
 urlpatterns = [
     path('', views.getProducts, name="products"), # 상품 목록 조회
+    path('create/', views.createProduct, name="product-create"), # 상품 등록
     path('<str:pk>/', views.getProduct, name="product"), # 상품 상세 조회
 ]

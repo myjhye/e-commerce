@@ -1,4 +1,6 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from base.models import Product
@@ -34,3 +36,26 @@ def getProduct(request, pk):
     product = get_object_or_404(Product, _id=pk) # pk(기본키)를 기준으로 해당 상품 하나만 조회 (존재하지 않는 상품일 경우 404 반환)
     serializer = ProductSerializer(product, many=False) # 단일 상품 객체를 JSON으로 직렬화
     return Response(serializer.data) # 직렬화된 데이터를 응답으로 반환
+
+
+
+# 상품 등록
+@api_view(['POST'])
+@permission_classes([IsAuthenticated]) # 로그인한 사용자만 등록 가능
+def createProduct(request):
+    user = request.user
+    data = request.data  # 클라이언트에서 보낸 JSON
+
+    product = Product.objects.create(
+        user=user, # 상품 등록자
+        name=data.get('name', ''),
+        price=data.get('price', 0),
+        brand=data.get('brand', ''),
+        category=data.get('category', ''),
+        description=data.get('description', ''),
+        countInStock=data.get('countInStock', 0),
+        image=data.get('image', None)  # 이미지 URL 또는 업로드 파일
+    )
+
+    serializer = ProductSerializer(product, many=False)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
