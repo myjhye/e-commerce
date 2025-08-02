@@ -7,6 +7,7 @@ from base.views import upload_views as upload_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/products/', include('base.urls.product_urls')), # 제품 관련 API
+    path('api/reviews/', include('base.urls.review_urls')), # 제품 리뷰 관련 API
     path('api/users/', include('base.urls.user_urls')), # 사용자 관련 API
     path('api/ai/', include('base.urls.ai_urls')),
     path('api/upload/', upload_views.uploadImage, name="image-upload"),

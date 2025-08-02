@@ -1,14 +1,6 @@
 import { Pagination } from 'react-bootstrap'
-import { LinkContainer } from 'react-router-bootstrap'
 
-export default function Paginate({ pages, page, keyword = '', isAdmin = false }) {
-
-    // keyword에서 실제 검색어만 추출
-    let searchKeyword = '';
-    if (keyword && typeof keyword === 'string' && keyword.includes('keyword=')) {
-        const match = keyword.match(/keyword=([^&]*)/);
-        searchKeyword = match ? match[1] : '';
-    }
+export default function Paginate({ pages, page, onPageChange }) {
 
     // 페이지가 1개 이하면 표시하지 않음
     if (!pages || pages <= 1) {
@@ -19,25 +11,13 @@ export default function Paginate({ pages, page, keyword = '', isAdmin = false })
         <div className="d-flex justify-content-center my-4">
             <Pagination>
                 {[...Array(pages).keys()].map((x) => (
-                    <LinkContainer
+                    <Pagination.Item
                         key={x + 1}
-                        to={!isAdmin 
-                            ? {
-                                pathname: '/',
-                                search: searchKeyword 
-                                    ? `?keyword=${searchKeyword}&page=${x + 1}`
-                                    : `?page=${x + 1}`
-                            }
-                            : {
-                                pathname: '/admin/productlist/',
-                                search: `?keyword=${searchKeyword}&page=${x + 1}`
-                            }
-                        }
+                        active={x + 1 === page}
+                        onClick={() => onPageChange(x + 1)}   // 클릭하면 부모 컴포넌트 함수 실행
                     >
-                        <Pagination.Item active={x + 1 === page}>
-                            {x + 1}
-                        </Pagination.Item>
-                    </LinkContainer>
+                        {x + 1}
+                    </Pagination.Item>
                 ))}
             </Pagination>
         </div>

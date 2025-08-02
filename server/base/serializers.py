@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Product
+from .models import Product, Review
 from rest_framework_simplejwt.tokens import RefreshToken
 
 # 상품(Product) 정보를 직렬화하는 시리얼라이저
@@ -35,3 +35,9 @@ class UserSerializer(serializers.ModelSerializer):
             name = obj.email # 이름이 비어있으면 email 사용
 
         return name
+    
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = '__all__'   # or ['_id', 'name', 'rating', 'comment', 'createdAt']
