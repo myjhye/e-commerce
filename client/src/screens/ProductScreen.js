@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProductReviewForm from '../components/ProductReviewForm'
 import ProductReviewList from '../components/ProductReviewList'
+import ReviewAIAnalysis from '../components/ReviewAIAnalysis'
 import Paginate from '../components/Paginate'
 
 export default function ProductScreen() {
@@ -73,11 +74,11 @@ export default function ProductScreen() {
                         </ListGroup.Item>
 
                         <ListGroup.Item>
-                            Price: ${product.price}
+                            ${product.price}
                         </ListGroup.Item>
 
                         <ListGroup.Item>
-                            Description: {product.description}
+                            {product.description}
                         </ListGroup.Item>
                     </ListGroup>
                 </Col>
@@ -142,6 +143,7 @@ export default function ProductScreen() {
                     </Card>
                 </Col>
             </Row>
+            
             {/* 리뷰 작성 */}
             <Row className="mt-5">
                 <Col md={12}>
@@ -152,6 +154,14 @@ export default function ProductScreen() {
                     </ListGroup>
                 </Col>
             </Row>
+
+            {/* AI 리뷰 분석 */}
+            <Row className="mt-4">
+                <Col md={12}>
+                    <ReviewAIAnalysis productId={id} />
+                </Col>
+            </Row>
+
             {/* 리뷰 목록 */}
             <Row className="md-2">
                 <Col md={12}>

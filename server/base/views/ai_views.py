@@ -8,6 +8,10 @@ from django.conf import settings
 import base64
 import os
 
+from base.services.review_analysis_service import get_review_analysis_service
+from base.models import Product
+import torch
+
 # LangGraph 서비스 import (안전하게)
 try:
     from base.services.langgraph_service import (
@@ -186,3 +190,90 @@ def checkLangGraphStatus(request):
         "langgraph_available": is_langgraph_available(),
         "message": "LangGraph가 사용 가능합니다." if is_langgraph_available() else "LangGraph가 사용 불가능합니다."
     })
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getProductReviewAnalysis(request, pk):
+    """특정 상품 리뷰 AI 분석 (Hugging Face 버전)"""
+    
+    try:
+        # 상품 조회
+        product = Product.objects.get(_id=pk)
+        
+        # 리뷰 데이터 가져오기
+        reviews = product.review_set.all().values('comment', 'rating')
+        
+        if not reviews:
+            return Response({
+                'detail': '분석할 리뷰가 없습니다.',
+                'product_name': product.name,
+                'review_count': 0
+            }, status=200)
+        
+        # 리뷰 데이터 준비
+        reviews_data = list(reviews)
+        
+        # AI 분석 실행
+        analysis_service = get_review_analysis_service()
+        result = analysis_service.analyze_reviews(reviews_data)
+        
+        # 응답 데이터 구성
+        response_data = {
+            'product_name': product.name,
+            'product_id': pk,
+            'sentiment_analysis': result['sentiment_analysis'],  # 긍정/부정 %
+            'keywords': result['keywords'],                      # 자주 언급 단어들
+            'summary': result['summary'],                        # 3줄 요약
+            'total_reviews': result['total_reviews']
+        }
+        
+        return Response(response_data)
+        
+    except Product.DoesNotExist:
+        return Response({
+            'detail': '존재하지 않는 상품입니다.'
+        }, status=404)
+        
+    except ValueError as e:
+        return Response({
+            'error': str(e)
+        }, status=400)
+        
+    except Exception as e:
+        import traceback
+        print("🔥 리뷰 분석 중 에러 발생!")
+        print(traceback.format_exc())
+        
+        return Response({
+            'error': '리뷰 분석 실패',
+            'detail': str(e)
+        }, status=500)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getHuggingFaceStatus(request):
+    """Hugging Face 모델 상태 확인"""
+    
+    try:
+        analysis_service = get_review_analysis_service()
+        
+        model_loaded = analysis_service.sentiment_model is not None
+        device = analysis_service.device
+        
+        return Response({
+            'status': 'active' if model_loaded else 'fallback',
+            'model_loaded': model_loaded,
+            'device': device,
+            'gpu_available': torch.cuda.is_available() if 'torch' in globals() else False,
+            'message': 'Hugging Face 모델이 정상 작동 중입니다.' if model_loaded 
+                      else 'Hugging Face 모델 로딩 실패, 키워드 기반 분석을 사용합니다.'
+        })
+        
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'error': str(e)
+        }, status=500)
