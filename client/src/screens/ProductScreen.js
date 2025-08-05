@@ -3,7 +3,7 @@ import { Row, Col, Image, ListGroup, Button, Card, Form } from 'react-bootstrap'
 import Rating from '../components/Rating'
 import { useDispatch, useSelector } from 'react-redux'
 import { listProductDetails } from '../actions/productActions';
-import { listProductReviews } from '../actions/reviewActions'
+import { deleteProductReview, listProductReviews } from '../actions/reviewActions'
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProductReviewForm from '../components/ProductReviewForm'
@@ -14,11 +14,10 @@ import Paginate from '../components/Paginate'
 export default function ProductScreen() {
     const { id } = useParams();
     const dispatch = useDispatch();
-    const navigate = useNavigate();
 
     const productDetails = useSelector((state) => state.productDetails); // 상품 상세 리덕스 상태 가져오기
     const { 
-        loading, 
+        loading,
         error, 
         product 
     } = productDetails;
@@ -32,8 +31,25 @@ export default function ProductScreen() {
         page 
     } = productReviewList
 
+    const productReviewUpdate = useSelector((state) => state.productReviewUpdate)
+    const { 
+        loading: loadingUpdate, 
+        error: errorUpdate, 
+        success: successUpdate 
+    } = productReviewUpdate
+    
+
+    const productReviewDelete = useSelector((state) => state.productReviewDelete)
+    const { 
+        loading: loadingDelete, 
+        error: errorDelete, 
+        success: successDelete 
+    } = productReviewDelete
+
+
     const [qty, setQty] = useState(1);
     const [reviewPage, setReviewPage] = useState(1);
+    const [editingReview, setEditingReview] = useState(null); // 수정 중인 리뷰
 
     // 상품 상세 데이터 요청
     useEffect(() => {
@@ -41,8 +57,31 @@ export default function ProductScreen() {
         dispatch(listProductReviews(id, reviewPage))
     }, [dispatch, id, reviewPage]);
 
-    const addToCartHandler = () => {
-        navigate(`/cart/${id}?qty=${qty}`);
+    // 삭제/수정 성공 시 리뷰 목록 새로고침
+    useEffect(() => {
+        if (successDelete || successUpdate) {
+            dispatch(listProductReviews(id, reviewPage));
+            dispatch(listProductDetails(id)); // 상품 평점 업데이트
+            setEditingReview(null); // 편집 모드 해제
+        }
+    }, [dispatch, id, reviewPage, successDelete, successUpdate]);
+
+    // 리뷰 수정 핸들러
+    const handleEditReview = (review) => {
+        setEditingReview(review); // ProductReviewForm에 편집 모드로 전환하도록 신호
+    }
+
+    // 리뷰 삭제 핸들러
+    const handleDeleteReview = (reviewId) => {
+        if (window.confirm('정말로 이 리뷰를 삭제하시겠습니까?')) {
+            dispatch(deleteProductReview(id, reviewId));
+        }
+    }
+
+    // 리뷰 수정 완료 핸들러
+    const handleEditComplete = () => {
+        setEditingReview(null);
+        // useEffect에서 successUpdate를 감지하여 자동으로 새로고침됨
     }
 
     if (loading) return <div>Loading...</div>;
@@ -134,7 +173,6 @@ export default function ProductScreen() {
                                     className="btn-block w-100"
                                     type="button"
                                     disabled={product.countInStock === 0}
-                                    onClick={addToCartHandler}
                                 >
                                     Add to Cart
                                 </Button>
@@ -144,12 +182,16 @@ export default function ProductScreen() {
                 </Col>
             </Row>
             
-            {/* 리뷰 작성 */}
+            {/* 리뷰 작성/수정 */}
             <Row className="mt-5">
                 <Col md={12}>
                     <ListGroup variant="flush">
                         <ListGroup.Item className="p-4">
-                            <ProductReviewForm productId={id} />
+                            <ProductReviewForm 
+                                productId={id} 
+                                editingReview={editingReview}
+                                onEditComplete={handleEditComplete}
+                            />
                         </ListGroup.Item>
                     </ListGroup>
                 </Col>
@@ -169,6 +211,8 @@ export default function ProductScreen() {
                         loading={loadingReviews}
                         error={errorReviews}
                         reviews={reviews}
+                        onEditReview={handleEditReview}
+                        onDeleteReview={handleDeleteReview}
                     />
 
                     <Paginate 

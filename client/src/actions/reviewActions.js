@@ -2,7 +2,15 @@ import axios from 'axios'
 import {
     PRODUCT_REVIEW_LIST_REQUEST,
     PRODUCT_REVIEW_LIST_SUCCESS,
-    PRODUCT_REVIEW_LIST_FAIL
+    PRODUCT_REVIEW_LIST_FAIL,
+    
+    PRODUCT_REVIEW_DELETE_REQUEST,
+    PRODUCT_REVIEW_DELETE_SUCCESS,
+    PRODUCT_REVIEW_DELETE_FAIL,
+    
+    PRODUCT_REVIEW_UPDATE_REQUEST,
+    PRODUCT_REVIEW_UPDATE_SUCCESS,
+    PRODUCT_REVIEW_UPDATE_FAIL
 } from '../constants/reviewConstants'
 
 export const listProductReviews = (productId, page = 1) => async (dispatch) => {
@@ -22,6 +30,52 @@ export const listProductReviews = (productId, page = 1) => async (dispatch) => {
     } catch (error) {
         dispatch({
             type: PRODUCT_REVIEW_LIST_FAIL,
+            payload:
+                error.response && error.response.data.detail
+                    ? error.response.data.detail
+                    : error.message,
+        })
+    }
+}
+
+
+export const updateProductReview = (productId, reviewId, reviewData) => async (dispatch) => {
+    try {
+        dispatch({ type: PRODUCT_REVIEW_UPDATE_REQUEST })
+
+        const { data } = await axios.put(
+            `/api/reviews/${productId}/${reviewId}/update/`,
+            reviewData
+        )
+
+        dispatch({ 
+            type: PRODUCT_REVIEW_UPDATE_SUCCESS,
+            payload: data
+        })
+
+    } catch (error) {
+        dispatch({
+            type: PRODUCT_REVIEW_UPDATE_FAIL,
+            payload:
+                error.response && error.response.data.detail
+                    ? error.response.data.detail
+                    : error.message,
+        })
+    }
+}
+
+
+export const deleteProductReview = (productId, reviewId) => async (dispatch) => {
+    try {
+        dispatch({ type: PRODUCT_REVIEW_DELETE_REQUEST })
+
+        await axios.delete(`/api/reviews/${productId}/${reviewId}/delete/`)
+
+        dispatch({ type: PRODUCT_REVIEW_DELETE_SUCCESS })
+
+    } catch (error) {
+        dispatch({
+            type: PRODUCT_REVIEW_DELETE_FAIL,
             payload:
                 error.response && error.response.data.detail
                     ? error.response.data.detail

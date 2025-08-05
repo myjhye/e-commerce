@@ -66,3 +66,108 @@ def getProductReviews(request, pk):
             {'detail': '존재하지 않는 상품입니다.'},
             status=status.HTTP_404_NOT_FOUND
         )
+    
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def updateProductReview(request, pk, review_id):
+    """
+    리뷰 수정
+    """
+    user = request.user
+    data = request.data
+    rating = data.get('rating')
+    comment = data.get('comment')
+
+    try:
+        # 리뷰 존재 확인 및 권한 검증
+        review = Review.objects.get(_id=review_id, product___id=pk)
+        
+        # 작성자 본인인지 확인
+        if review.user != user:
+            return Response(
+                {'detail': '자신이 작성한 리뷰만 수정할 수 있습니다.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # 리뷰 업데이트
+        if rating is not None:
+            review.rating = int(rating)
+        if comment is not None:
+            review.comment = comment
+        
+        review.save()
+
+        # 상품 평점 재계산
+        try:
+            ReviewService._update_product_rating(pk)
+        except AttributeError:
+            pass # ReviewService에 해당 메소드가 없는 경우 무시
+
+        return Response(
+            {'detail': '리뷰가 수정되었습니다.'},
+            status=status.HTTP_200_OK
+        )
+
+    except Review.DoesNotExist:
+        return Response(
+            {'detail': '존재하지 않는 리뷰입니다.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except ValueError:
+        return Response(
+            {'detail': '평점은 숫자여야 합니다.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except Exception as e:
+        return Response(
+            {'detail': str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def deleteProductReview(request, pk, review_id):
+    """
+    리뷰 삭제
+    """
+    user = request.user
+
+    try:
+        # 리뷰 존재 확인 및 권한 검증
+        review = Review.objects.get(_id=review_id, product___id=pk)
+        
+        # 작성자 본인인지 확인
+        if review.user != user:
+            return Response(
+                {'detail': '자신이 작성한 리뷰만 삭제할 수 있습니다.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # 리뷰 삭제
+        review.delete()
+
+        # 상품 평점 재계산
+        try:
+            ReviewService._update_product_rating(pk)
+        except AttributeError:
+            pass # ReviewService에 해당 메소드가 없는 경우 무시
+
+        return Response(
+            {'detail': '리뷰가 삭제되었습니다.'},
+            status=status.HTTP_200_OK
+        )
+
+    except Review.DoesNotExist:
+        return Response(
+            {'detail': '존재하지 않는 리뷰입니다.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {'detail': str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )

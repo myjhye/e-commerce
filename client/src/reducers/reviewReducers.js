@@ -1,7 +1,17 @@
 import {
     PRODUCT_REVIEW_LIST_REQUEST,
     PRODUCT_REVIEW_LIST_SUCCESS,
-    PRODUCT_REVIEW_LIST_FAIL
+    PRODUCT_REVIEW_LIST_FAIL,
+    
+    PRODUCT_REVIEW_DELETE_REQUEST,
+    PRODUCT_REVIEW_DELETE_SUCCESS,
+    PRODUCT_REVIEW_DELETE_FAIL,
+    PRODUCT_REVIEW_DELETE_RESET,
+    
+    PRODUCT_REVIEW_UPDATE_REQUEST,
+    PRODUCT_REVIEW_UPDATE_SUCCESS,
+    PRODUCT_REVIEW_UPDATE_FAIL,
+    PRODUCT_REVIEW_UPDATE_RESET
 } from '../constants/reviewConstants'
 
 export const productReviewListReducer = (state = { reviews: [] }, action) => {
@@ -25,6 +35,61 @@ export const productReviewListReducer = (state = { reviews: [] }, action) => {
                 loading: false, 
                 error: action.payload 
             }
+        default:
+            return state
+    }
+}
+
+export const productReviewDeleteReducer = (state = {}, action) => {
+    switch (action.type) {
+        case PRODUCT_REVIEW_DELETE_REQUEST:
+            return { 
+                loading: true 
+            }
+            
+        case PRODUCT_REVIEW_DELETE_SUCCESS:
+            return { 
+                loading: false,
+                success: true 
+            }
+
+        case PRODUCT_REVIEW_DELETE_FAIL:
+            return { 
+                loading: false, 
+                error: action.payload 
+            }
+
+        case PRODUCT_REVIEW_DELETE_RESET:
+            return {}
+
+        default:
+            return state
+    }
+}
+
+export const productReviewUpdateReducer = (state = {}, action) => {
+    switch (action.type) {
+        case PRODUCT_REVIEW_UPDATE_REQUEST:
+            return { 
+                loading: true 
+            }
+            
+        case PRODUCT_REVIEW_UPDATE_SUCCESS:
+            return { 
+                loading: false,
+                success: true,
+                review: action.payload 
+            }
+
+        case PRODUCT_REVIEW_UPDATE_FAIL:
+            return { 
+                loading: false, 
+                error: action.payload 
+            }
+
+        case PRODUCT_REVIEW_UPDATE_RESET:
+            return {}
+
         default:
             return state
     }

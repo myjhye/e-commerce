@@ -1,9 +1,9 @@
 import axios from 'axios'
-import { useState } from 'react'
-import { Form, Button, Card } from 'react-bootstrap'
+import { useEffect, useState } from 'react'
+import { Form, Button } from 'react-bootstrap'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
-import { listProductReviews } from '../actions/reviewActions'
+import { listProductReviews, updateProductReview } from '../actions/reviewActions'
 
 // 별점 컴포넌트
 function StarRating({ rating, onRatingChange, interactive = false }) {
@@ -63,14 +63,42 @@ function StarRating({ rating, onRatingChange, interactive = false }) {
     )
 }
 
-export default function ProductReviewForm({ productId }) {
+export default function ProductReviewForm({ 
+    productId, 
+    editingReview = null,  // 수정할 리뷰 데이터
+    onEditComplete = null  // 수정 완료 콜백
+}) {
     const [rating, setRating] = useState(0)
     const [comment, setComment] = useState('')
+    const [isEditing, setIsEditing] = useState(false)
 
     const userLogin = useSelector((state) => state.userLogin)
     const { userInfo } = userLogin
 
     const dispatch = useDispatch()
+
+    // 수정 모드일 때 폼에 기존 데이터 채우기
+    useEffect(() => {
+        if (editingReview) {
+            setRating(editingReview.rating)
+            setComment(editingReview.comment)
+            setIsEditing(true)
+        } 
+        else {
+            setRating(0)
+            setComment('')
+            setIsEditing(false)
+        }
+    }, [editingReview])
+
+    const resetForm = () => {
+        setRating(0)
+        setComment('')
+        setIsEditing(false)
+        if (onEditComplete) {
+            onEditComplete()
+        }
+    }
 
     const submitHandler = async (e) => {
         e.preventDefault()
@@ -86,21 +114,31 @@ export default function ProductReviewForm({ productId }) {
         }
 
         try {
-            const { data } = await axios.post(
-                `/api/reviews/${productId}/create/`,
-                { rating, comment }
-            )
 
-            alert(data.detail) // 서버에서 내려주는 메시지 ("리뷰가 등록되었습니다.")
-            console.log('리뷰 등록 성공:', data)
+            // 수정 모드
+            if (isEditing && editingReview) {
+                dispatch(updateProductReview(productId, editingReview._id, { rating, comment }))
+                alert('리뷰가 수정되었습니다.')
+                resetForm()
+            }
+            
+            // 등록 모드
+            else {
+                const { data } = await axios.post(
+                    `/api/reviews/${productId}/create/`,
+                    { rating, comment }
+                )
 
-            // 폼 초기화
-            setRating(0)
-            setComment('')
+                alert(data.detail) // 서버에서 내려주는 메시지 ("리뷰가 등록되었습니다.")
+                console.log('리뷰 등록 성공:', data)
 
-            // 리뷰 등록 성공 후 목록 다시 불러오기 (첫 페이지 기준)
-            dispatch(listProductReviews(productId, 1))
+                // 폼 초기화
+                setRating(0)
+                setComment('')
 
+                // 리뷰 등록 성공 후 목록 다시 불러오기 (첫 페이지 기준)
+                dispatch(listProductReviews(productId, 1))
+            }
         } 
         
         catch (error) {
@@ -109,10 +147,21 @@ export default function ProductReviewForm({ productId }) {
         }
     }
 
+    const cancelEdit = () => {
+        resetForm()
+    }
+
     return (
         <div className="mt-4">
             {userInfo ? (
                 <Form onSubmit={submitHandler}>
+                    {/* 수정 모드 표시 */}
+                    {isEditing && (
+                        <div className="alert alert-info mb-3">
+                            <strong>리뷰 수정 모드</strong> - 기존 리뷰를 수정하고 있습니다.
+                        </div>
+                    )}
+
                     {/* 별점 */}
                     <Form.Group controlId="rating" className="mb-3">
                         <Form.Label>별점 평가 <span className="text-danger">*</span></Form.Label>
@@ -158,6 +207,24 @@ export default function ProductReviewForm({ productId }) {
                                 >
                                     리뷰 등록
                                 </Button>
+
+                                {/* 수정 모드일 때만 취소 버튼 표시 */}
+                                {isEditing && (
+                                    <Button
+                                        type="button"
+                                        variant="outline-secondary"
+                                        onClick={cancelEdit}
+                                        style={{
+                                            minWidth: '100px',
+                                            height: '100%',           
+                                            paddingTop: '0.75rem',    
+                                            paddingBottom: '0.75rem',
+                                            lineHeight: '1.5',    
+                                        }}
+                                    >
+                                        취소
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </Form.Group>

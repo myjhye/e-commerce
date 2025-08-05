@@ -4,13 +4,15 @@ import { composeWithDevTools } from 'redux-devtools-extension'
 
 import { productDetailsReducer, productListReducer } from './reducers/productReducers'
 import { userLoginReducer, userRegisterReducer } from './reducers/userReducers'
-import { productReviewListReducer } from './reducers/reviewReducers'
+import { productReviewDeleteReducer, productReviewListReducer, productReviewUpdateReducer } from './reducers/reviewReducers'
 
 const reducer = combineReducers({
     productList: productListReducer, // 상품 목록 조회
     productDetails: productDetailsReducer, // 상품 상세 조회
 
     productReviewList: productReviewListReducer, // 상품 리뷰 조회
+    productReviewDelete: productReviewDeleteReducer,  // 상품 리뷰 삭제
+    productReviewUpdate: productReviewUpdateReducer,  // 상품 리뷰 수정
 
     userLogin: userLoginReducer, // 로그인
     userRegister: userRegisterReducer, // 회원가입
