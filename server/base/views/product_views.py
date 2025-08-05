@@ -3,9 +3,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
-from base.models import Product
+from base.models import Product, Order, OrderItem
 from base.serializers import ProductSerializer
 from django.shortcuts import get_object_or_404
+from datetime import datetime
 
 # 전체 상품 목록 조회
 @api_view(['GET'])
@@ -59,3 +60,41 @@ def createProduct(request):
 
     serializer = ProductSerializer(product, many=False)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def purchaseProduct(request, pk):
+    user = request.user
+    product = get_object_or_404(Product, _id=pk)
+
+    if product.countInStock < 1:
+        return Response({'detail': '재고가 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 주문 생성
+    order = Order.objects.create(
+        user=user,
+        paymentMethod='Card', # 하드코딩된 결제 수단
+        taxPrice=0.0, # 세금 없음
+        shippingPrice=0.0, # 배송비 없음
+        totalPrice=product.price, # 총액은 상품 가격
+        isPaid=True,
+        paidAt=datetime.now()
+    )
+
+    # 주문 항목 생성
+    OrderItem.objects.create(
+        product=product,
+        order=order,
+        name=product.name,
+        qty=1,
+        price=product.price,
+        image=product.image.url if product.image else ''
+    )
+
+    # 재고 차감
+    product.countInStock -= 1
+    product.save()
+
+    return Response({'detail': '구매가 완료되었습니다.'}, status=status.HTTP_200_OK)

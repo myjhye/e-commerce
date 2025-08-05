@@ -10,6 +10,7 @@ import ProductReviewForm from '../components/ProductReviewForm'
 import ProductReviewList from '../components/ProductReviewList'
 import ReviewAIAnalysis from '../components/ReviewAIAnalysis'
 import Paginate from '../components/Paginate'
+import axios from 'axios';
 
 export default function ProductScreen() {
     const { id } = useParams();
@@ -46,8 +47,6 @@ export default function ProductScreen() {
         success: successDelete 
     } = productReviewDelete
 
-
-    const [qty, setQty] = useState(1);
     const [reviewPage, setReviewPage] = useState(1);
     const [editingReview, setEditingReview] = useState(null); // 수정 중인 리뷰
 
@@ -82,6 +81,17 @@ export default function ProductScreen() {
     const handleEditComplete = () => {
         setEditingReview(null);
         // useEffect에서 successUpdate를 감지하여 자동으로 새로고침됨
+    }
+
+    const handlePurchase = async () => {
+        try {
+            await axios.post(`/api/products/${id}/purchase/`)
+            alert('구매가 완료되었습니다!')
+            dispatch(listProductDetails(id)) // 상품 상세 정보 새로고침 (재고 수량 반영)
+        } 
+        catch (error) {
+            alert(error.response?.data?.detail || '구매에 실패했습니다.')
+        }
     }
 
     if (loading) return <div>Loading...</div>;
@@ -147,22 +157,10 @@ export default function ProductScreen() {
                                 <ListGroup.Item>
                                     <Row>
                                         <Col>Qty</Col>
-                                        <Col xs='auto' className='my-1'>
-                                            <Form.Control
-                                                as="select"
-                                                value={qty}
-                                                onChange={(e) => setQty(e.target.value)}
-                                            >
-                                                {
-
-                                                    [...Array(product.countInStock).keys()].map((x) => (
-                                                        <option key={x + 1} value={x + 1}>
-                                                            {x + 1}
-                                                        </option>
-                                                    ))
-                                                }
-
-                                            </Form.Control>
+                                        <Col className='my-1'>
+                                            <span>
+                                                <span style={{ fontWeight: 'bold', color: '#d9534f' }}>{product.countInStock}</span>개 남음
+                                            </span>
                                         </Col>
                                     </Row>
                                 </ListGroup.Item>
@@ -174,7 +172,18 @@ export default function ProductScreen() {
                                     type="button"
                                     disabled={product.countInStock === 0}
                                 >
-                                    Add to Cart
+                                    장바구니에 추가
+                                </Button>
+                            </ListGroup.Item>
+
+                            <ListGroup.Item>
+                                <Button
+                                    className="btn-block w-100 btn-primary"
+                                    type="button"
+                                    disabled={product.countInStock === 0}
+                                    onClick={handlePurchase}
+                                >
+                                    구매하기
                                 </Button>
                             </ListGroup.Item>
                         </ListGroup>

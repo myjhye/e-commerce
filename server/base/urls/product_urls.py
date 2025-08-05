@@ -5,4 +5,5 @@ urlpatterns = [
     path('', views.getProducts, name="products"), # 상품 목록 조회
     path('create/', views.createProduct, name="product-create"), # 상품 등록
     path('<str:pk>/', views.getProduct, name="product"), # 상품 상세 조회
+    path('<str:pk>/purchase/', views.purchaseProduct, name="product-purchase"), # 상품 구매
 ]
