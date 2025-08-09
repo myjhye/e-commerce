@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams, useLocation } from "react-router-dom";
 import { Row, Col, Card } from "react-bootstrap";
@@ -10,34 +10,27 @@ import { listProducts } from "../actions/productActions";
 
 export default function HomeScreen() {
   const dispatch = useDispatch();
-  const [searchParams] = useSearchParams();
-  const location = useLocation();
 
-  // Redux 스토어에서 상태 읽어오기
-  const productList = useSelector((state) => state.productList)
   const { 
     loading, 
     error, 
-    products = [],
-    page, // 현재 페이지
-    pages, // 총 페이지 수
-  } = productList
+    products = [], 
+    pages = 1 
+  } = useSelector((state) => state.productList);
 
-  // URL에서 검색 파라미터 추출 (개별적으로 처리)
-  const currentPage = searchParams.get('page') || '1';
-  const searchKeyword = searchParams.get('keyword') || '';
+  const [currentPage, setCurrentPage] = useState(1); // URL 대신 로컬 상태로 페이지 관리
 
   // 컴포넌트가 처음 렌더링될 때 상품 목록 요청
   useEffect(() => {
-    // API 호출 시 개별 파라미터로 전달
-    const params = new URLSearchParams();
-    if (searchKeyword) params.append('keyword', searchKeyword);
-    if (currentPage && currentPage !== '1') params.append('page', currentPage);
-    
-    const queryString = params.toString();
-    console.log('🚀 Dispatching listProducts with:', queryString);
-    dispatch(listProducts(queryString));
-  }, [dispatch, currentPage, searchKeyword]);
+    dispatch(listProducts({ page: currentPage }));
+  }, [dispatch, currentPage]);
+
+
+  const handlePageChange = (p) => {
+    setCurrentPage(p); // URL 안 바뀜
+    window.scrollTo(0, 0); // 페이지 이동 시 상단으로
+  };
+
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -72,10 +65,10 @@ export default function HomeScreen() {
         ))}
       </Row>
       {/* 페이지네이션 */}
-      <Paginate 
-        page={page} 
-        pages={pages} 
-        keyword={searchKeyword} 
+      <Paginate
+        page={currentPage}     // ✅ 로컬 상태로 활성 페이지 표시
+        pages={pages}          // 서버에서 받은 총 페이지 수
+        onPageChange={handlePageChange}
       />
     </div>
   );

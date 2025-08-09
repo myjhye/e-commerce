@@ -9,18 +9,14 @@ import {
 } from '../constants/productConstants'
 
 
-// 상품 목록 조회 액션 (검색어 포함 가능)
-export const listProducts = (queryString = '') => async (dispatch) => {
+// 상품 목록 조회 액션
+export const listProducts = ({ page = 1 } = {}) => async (dispatch) => {
   try {
     dispatch({ type: PRODUCT_LIST_REQUEST })
 
-    let url = '/api/products/'
-    
-    if (queryString) {
-      url += queryString.startsWith('?') ? queryString : `?${queryString}` // queryString이 ?로 시작하면 그대로 사용, 아니면 ?를 붙임
-    }
-
-    const { data } = await axios.get(url)
+    const { data } = await axios.get('/api/products/', {
+      params: page !== 1 ? { page } : {},
+    });
 
     dispatch({
       type: PRODUCT_LIST_SUCCESS,
@@ -52,7 +48,9 @@ export const listProductDetails = (id) => async (dispatch) => {
             payload: data
         })
 
-    } catch (error) {
+    } 
+    
+    catch (error) {
         dispatch({
             type: PRODUCT_DETAILS_FAIL,
             payload: error.response && error.response.data.detail
