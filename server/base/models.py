@@ -84,3 +84,14 @@ class ShippingAddress(models.Model):
 
     def __str__(self):
         return str(self.address)
+    
+    
+class ProductView(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='product_views', db_index=True)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='user_views', db_index=True)
+    view_count = models.PositiveIntegerField(default=0)
+    last_viewed = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'product')
+        ordering = ['-last_viewed']
