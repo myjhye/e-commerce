@@ -1,22 +1,25 @@
-import openai
+from openai import OpenAI
 from django.conf import settings
 
 class LLMRecommendationService:
     def __init__(self):
-        openai.api_key = getattr(settings, 'OPENAI_API_KEY', '')
-    
+        self.client = OpenAI(
+            api_key=getattr(settings, 'OPENAI_API_KEY', '')
+        )
+
+    # OpenAI GPT를 활용해서 개인화된 추천 이유를 생성
     def generate_recommendations_with_reasons(self, user_profile, candidate_products, num_recommendations=5):
         """LLM을 사용해 추천 상품과 이유 생성"""
         
-        # 상위 후보 상품들 선택
-        top_candidates = candidate_products[:num_recommendations * 2]  # 여유분 확보
+        # 1단계: 여유분 확보
+        top_candidates = candidate_products[:num_recommendations * 2] # 5개 추천 → 10개 후보
         
-        # LLM용 프롬프트 생성
+        # 2단계: 프롬프트 생성 (사용자 데이터와 상품 정보를 GPT가 이해할 수 있는 형태로 변환)
         prompt = self._create_recommendation_prompt(user_profile, top_candidates)
         
         try:
-            # OpenAI API 호출
-            response = openai.ChatCompletion.create(
+            # 3단계: OpenAI API 호출
+            response = self.client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
                     {
@@ -28,29 +31,33 @@ class LLMRecommendationService:
                         "content": prompt
                     }
                 ],
-                max_tokens=1500,
+                max_tokens=1000,
                 temperature=0.7
             )
-            
-            # 응답 파싱
-            recommendations = self._parse_llm_response(response.choices[0].message.content)
+            content = response.choices[0].message.content
+
+            # 4단계: 응답 처리
+            recommendations = self._parse_llm_response(content) # GPT 응답 파싱
             
             # 추천 결과와 상품 정보 매칭
             final_recommendations = self._match_recommendations_with_products(
                 recommendations, top_candidates
             )
             
-            return final_recommendations[:num_recommendations]
+            return final_recommendations[:num_recommendations] # 최종 5개 선별
             
         except Exception as e:
             print(f"LLM 추천 생성 실패: {e}")
             # LLM 실패 시 기본 추천 반환
             return self._create_fallback_recommendations(candidate_products[:num_recommendations])
     
+
+
+    # GPT가 이해할 수 있는 형태로 사용자 정보와 상품 정보를 정리해서, GPT에게 "무엇을, 어떻게, 왜" 추천해야 하는지 명확하게 알려주는 지시서
     def _create_recommendation_prompt(self, user_profile, candidate_products):
         """LLM용 프롬프트 생성"""
         
-        # 사용자 프로필 요약
+        # 1단계: 사용자 프로필 요약
         profile_summary = f"""
             사용자 프로필:
             - 이름: {user_profile.get('username', 'Unknown')}
@@ -61,8 +68,20 @@ class LLMRecommendationService:
             - 총 구매 횟수: {user_profile.get('total_purchases', 0)}회
             - 최근 관심 상품: {', '.join([item['product_name'] for item in user_profile.get('recent_interests', [])[:3]])}
         """
+
+        """
+        실제 결과 예시:
+            사용자 프로필:
+            - 이름: sim@example.com
+            - 선호 카테고리: 신발(88.3%), 액세서리(11.7%), 의류(5.2%)
+            - 선호 브랜드: Crocs, Nike, CASIO  
+            - 평균 구매 가격대: 1,745원
+            - 구매 주기: quarterly
+            - 총 구매 횟수: 15회
+            - 최근 관심 상품: 크록스 오프로드 클로그, 나이키 에어포스, 애플워치 밴드
+        """
         
-        # 후보 상품 목록
+        # 2단계: 후보 상품 목록 생성
         products_list = ""
         for i, product in enumerate(candidate_products, 1):
             products_list += f"""
@@ -73,7 +92,25 @@ class LLMRecommendationService:
                 - 평점: {product.rating}/5.0 ({product.numReviews}개 리뷰)
                 - 설명: {product.description[:100]}...
             """
+
+        """
+        실제 결과 예시:
+            1. 크록스 에코 마블드 클로그 문라이트 멀티
+            - 카테고리: 신발
+            - 브랜드: Crocs
+            - 가격: 1,111원
+            - 평점: 4.5/5.0 (25개 리뷰)
+            - 설명: 편안하고 스타일리시한 크록스 클로그입니다. 다양한 환경에서 착용 가능하며...
+
+            2. 나이키 에어포스 1 화이트
+            - 카테고리: 신발
+            - 브랜드: Nike
+            - 가격: 2,222원
+            - 평점: 4.8/5.0 (150개 리뷰)
+            - 설명: 클래식한 농구화 스타일의 운동화입니다. 데일리 룩에 잘 어울리며...
+        """
         
+        # 3단계: 요청 사항과 형식 명시
         prompt = f"""
             {profile_summary}
 
@@ -97,25 +134,31 @@ class LLMRecommendationService:
         
         return prompt
     
+
+
+    # GPT가 생성한 텍스트 응답을 프로그램이 사용할 수 있는 구조화된 데이터로 변환
     def _parse_llm_response(self, response_text):
         """LLM 응답 파싱"""
         recommendations = []
-        lines = response_text.strip().split('\n')
+
+        # 1단계: 텍스트 전처리
+        lines = response_text.strip().split('\n') # 앞뒤 공백 제거 후 라인별로 분할
         
         current_rec = {}
         
+        # 2단계: 라인별 순회 및 패턴 매칭
         for line in lines:
             line = line.strip()
             if not line:
-                continue
+                continue # 빈 라인 건너뛰기
                 
-            # 상품 번호와 이름 파싱
+            # 3단계: 상품 정보 파싱 (가장 중요!)
             if line.startswith('[') and ':' in line and ']' in line:
-                if current_rec:  # 이전 추천 저장
+                if current_rec:  # 이전 추천이 있으면 저장
                     recommendations.append(current_rec)
                 
                 # 새 추천 시작
-                bracket_content = line[1:line.find(']')]
+                bracket_content = line[1:line.find(']')] # 대괄호 안 내용 추출
                 if ':' in bracket_content:
                     product_num, product_name = bracket_content.split(':', 1)
                     current_rec = {
@@ -125,12 +168,12 @@ class LLMRecommendationService:
                         'score': 5
                     }
             
-            # 추천이유 파싱
+            # 4단계: 추천이유 파싱
             elif line.startswith('추천이유:'):
                 if current_rec:
                     current_rec['reason'] = line.replace('추천이유:', '').strip()
             
-            # 추천점수 파싱
+            # 5단계: 추천점수 파싱 (에러 처리 포함)
             elif line.startswith('추천점수:'):
                 if current_rec:
                     try:
@@ -139,27 +182,43 @@ class LLMRecommendationService:
                     except:
                         current_rec['score'] = 5
         
-        # 마지막 추천 저장
+        # 6단계: 마지막 추천 저장
         if current_rec:
             recommendations.append(current_rec)
         
         return recommendations
     
+
+
+    # GPT가 선택한 상품 번호를 실제 상품 객체와 연결해서 완전한 추천 데이터 만들기
     def _match_recommendations_with_products(self, recommendations, candidate_products):
         """추천 결과와 실제 상품 매칭"""
         final_recommendations = []
+        used_product_ids = set()  # 사용된 상품 ID 추적
         
         for rec in recommendations:
+
+            # 1단계: 상품 번호 → 배열 인덱스 변환
             product_num = rec.get('product_number', 0) - 1  # 0-based 인덱스
             
+            # 2단계: 인덱스 유효성 검사
             if 0 <= product_num < len(candidate_products):
+
+                # 3단계: 실제 상품 객체 가져오기
                 product = candidate_products[product_num]
+
+                # 중복 상품 확인
+                if product._id in used_product_ids:
+                    continue
+
+                used_product_ids.add(product._id)
                 
+                # 4단계: 완전한 추천 객체 생성
                 final_recommendations.append({
-                    'product': product,
-                    'reason': rec.get('reason', '이 상품을 추천드립니다.'),
-                    'score': rec.get('score', 5),
-                    'product_data': {
+                    'product': product, # Django 모델 객체
+                    'reason': rec.get('reason', '이 상품을 추천드립니다.'), # GPT 추천 이유
+                    'score': rec.get('score', 5), # GPT 점수
+                    'product_data': { # 프론트엔드용 데이터
                         'id': product._id,
                         'name': product.name,
                         'category': product.category,
@@ -174,6 +233,8 @@ class LLMRecommendationService:
         
         return final_recommendations
     
+
+    # OpenAI API가 실패했을 때 서비스 중단 없이 기본 추천을 제공하는 백업 시스템
     def _create_fallback_recommendations(self, products):
         """LLM 실패 시 기본 추천 생성"""
         fallback_reasons = [
@@ -188,8 +249,8 @@ class LLMRecommendationService:
         for i, product in enumerate(products):
             recommendations.append({
                 'product': product,
-                'reason': fallback_reasons[i % len(fallback_reasons)],
-                'score': 7,
+                'reason': fallback_reasons[i % len(fallback_reasons)], # 순환 배정
+                'score': 7, # 고정 점수 (중간값)
                 'product_data': {
                     'id': product._id,
                     'name': product.name,
