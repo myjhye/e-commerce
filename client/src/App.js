@@ -13,6 +13,7 @@ import store from './store'
 import './utils/axiosConfig' // axios interceptor 설정
 import ProductCreateScreen from './screens/ProductCreateScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import ChatbotScreen from './screens/ChatbotScreen';
 
 
 function App() {
@@ -28,10 +29,12 @@ function App() {
                 
                 <Route path='/login' element={<LoginScreen />} />
                 <Route path='/register' element={<RegisterScreen />} />
-                <Route path='/profile' element={<ProfileScreen />} />
+                <Route path='/profile/buy' element={<ProfileScreen />} />
                 
                 <Route path='/product/:id' element={<ProductScreen />} />
                 <Route path='/product-create' element={<ProductCreateScreen />} />
+
+                <Route path='/chatbot' element={<ChatbotScreen />} />
               </Routes>
             </Container>
           </main>

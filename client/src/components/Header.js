@@ -4,9 +4,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../actions/userActions';
 
 export default function Header() {
-    
+
     const dispatch = useDispatch();
-    
+
     const userLogin = useSelector(state => state.userLogin);
     const userRegister = useSelector(state => state.userRegister);
 
@@ -31,35 +31,53 @@ export default function Header() {
 
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
-                        <Nav className="ml-auto">
-                            <LinkContainer to="/cart">
-                                <Nav.Link>
-                                <i className="fas fa-shopping-cart"></i> Cart
-                                </Nav.Link>
-                            </LinkContainer>
-
-                            {currentUser ? (
-                                <>
-                                    <LinkContainer to="/profile">
+                        {/* 로그인 상태에서만 메뉴 보이기 */}
+                        {currentUser ? (
+                            <>
+                                <Nav className="me-auto">
+                                    <LinkContainer to="/cart">
                                         <Nav.Link>
+                                            <i className="fas fa-shopping-cart"></i> Cart
+                                        </Nav.Link>
+                                    </LinkContainer>
+
+                                    <LinkContainer to="/product-create">
+                                        <Nav.Link>
+                                            <i className="fas fa-plus-circle"></i> Add Product
+                                        </Nav.Link>
+                                    </LinkContainer>
+
+                                    <LinkContainer to="/chatbot">
+                                        <Nav.Link>
+                                            <i className="fas fa-robot"></i> Chatbot
+                                        </Nav.Link>
+                                    </LinkContainer>
+                                </Nav>
+
+                                <Nav className="ms-auto d-flex align-items-center">
+                                    <Navbar.Text className="text-light me-3 mb-0">
+                                        안녕하세요, <span className="text-warning fw-bold">{currentUser.name}</span>님! <i className="fas fa-smile"></i>
+                                    </Navbar.Text>
+                                    <LinkContainer to="/profile/buy">
+                                        <Nav.Link className="me-2">
                                             <i className="fas fa-user"></i> Profile
                                         </Nav.Link>
                                     </LinkContainer>
-                                    <Nav.Link onClick={logoutHandler}>
+                                    <Nav.Link onClick={logoutHandler} className="text-danger">
                                         <i className="fas fa-sign-out-alt"></i> Logout
                                     </Nav.Link>
-                                    <Navbar.Text className="text-light ms-3">
-                                        안녕하세요, <span className="text-warning">{currentUser.name}</span>님! <i className="fas fa-smile"></i>
-                                    </Navbar.Text>
-                                </>
-                            ) : (
+                                </Nav>
+                            </>
+                        ) : (
+                            /* 로그인 안 된 상태 → Login만 보임 */
+                            <Nav className="ms-auto">
                                 <LinkContainer to="/login">
                                     <Nav.Link>
                                         <i className="fas fa-user"></i> Login
                                     </Nav.Link>
                                 </LinkContainer>
-                            )}
-                        </Nav>
+                            </Nav>
+                        )}
                     </Navbar.Collapse>
                 </Container>
             </Navbar>
