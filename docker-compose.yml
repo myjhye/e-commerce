@@ -13,8 +13,9 @@ services:
   frontend:
     build: ./client
     container_name: react_app
-    expose:
-      - "80"
+    volumes:
+      - build_folder:/app/build   # 빌드 결과물 공유
+    command: sh -c "npm run build"  # 실행은 빌드만 하고 종료됨
 
   nginx:
     image: nginx:alpine
@@ -23,6 +24,10 @@ services:
       - "80:80"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - build_folder:/usr/share/nginx/html  # React 빌드 결과물 공유
     depends_on:
       - backend
       - frontend
+
+volumes:
+  build_folder:
