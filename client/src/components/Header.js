@@ -35,12 +35,6 @@ export default function Header() {
                         {currentUser ? (
                             <>
                                 <Nav className="me-auto">
-                                    <LinkContainer to="/cart">
-                                        <Nav.Link>
-                                            <i className="fas fa-shopping-cart"></i> Cart
-                                        </Nav.Link>
-                                    </LinkContainer>
-
                                     <LinkContainer to="/product-create">
                                         <Nav.Link>
                                             <i className="fas fa-plus-circle"></i> Add Product

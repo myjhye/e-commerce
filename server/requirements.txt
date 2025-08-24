@@ -1,0 +1,38 @@
+# Django & DRF
+Django==4.2.7
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+djangorestframework-simplejwt==5.3.1
+python-decouple==3.8
+
+# 이미지 처리
+pillow==10.1.0
+
+# 요청/응답
+requests==2.31.0
+
+# LangChain / LangGraph (AI 파트)
+langgraph==0.0.69
+langchain==0.2.11
+langchain-openai==0.1.17
+langchain-core==0.2.23
+langchain-chroma==0.1.4
+
+# OpenAI (LangChain-OpenAI와 충돌 없게 버전 맞춤)
+openai>=1.32.0,<2.0.0
+
+# Hugging Face 관련
+transformers==4.36.0
+torch==2.1.0
+torchvision==0.16.0
+torchaudio==2.1.0
+tokenizers==0.15.0
+accelerate==0.24.0
+sentencepiece==0.1.99
+
+# 타입, 데이터 모델
+pydantic==2.5.3
+typing-extensions==4.9.0
+
+# WSGI 서버
+gunicorn==21.2.0

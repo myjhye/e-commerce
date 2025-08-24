@@ -21,20 +21,6 @@ export default function ChatbotScreen() {
         scrollToBottom()
     }, [messages])
 
-    // 시스템 상태 확인 (컴포넌트 마운트 시)
-    useEffect(() => {
-        checkSystemStatus()
-    }, [])
-
-    const checkSystemStatus = async () => {
-        try {
-            const { data } = await axios.get("/api/ai/chatbot/status/")
-            setSystemStatus(data)
-        } catch (err) {
-            console.error("시스템 상태 확인 실패:", err)
-        }
-    }
-
     const sendMessage = async (e) => {
         e.preventDefault()
         if (!input.trim()) return
@@ -83,23 +69,11 @@ export default function ChatbotScreen() {
 
     return (
         <div className="container-fluid p-3">
-            {/* 시스템 상태 표시 */}
-            {systemStatus && systemStatus.status === "error" && (
-                <Alert variant="warning" className="mb-3">
-                    ⚠️ 챗봇 시스템이 준비 중입니다. 일부 기능이 제한될 수 있습니다.
-                </Alert>
-            )}
-
             <Card className="shadow" style={{ maxHeight: "85vh" }}>
                 <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
                     <div>
                         <h3 className="mb-0">🤖 고객 상담 챗봇 (환불, 배송, 결제 관련 문의)</h3>
                     </div>
-                    {systemStatus && (
-                        <Badge bg={systemStatus.status === "ok" ? "success" : "warning"} style={{ fontSize: "1rem", padding: "0.5rem 1rem" }}>
-                            {systemStatus.status === "ok" ? "정상 작동" : "점검 필요"}
-                        </Badge>
-                    )}
                 </Card.Header>
 
                 <Card.Body style={{ 

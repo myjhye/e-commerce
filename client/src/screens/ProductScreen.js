@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import { listProductDetails } from '../actions/productActions';
 import { deleteProductReview, listProductReviews } from '../actions/reviewActions'
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import ProductReviewForm from '../components/ProductReviewForm'
 import ProductReviewList from '../components/ProductReviewList'
 import ReviewAIAnalysis from '../components/ReviewAIAnalysis'
@@ -55,6 +54,14 @@ export default function ProductScreen() {
         dispatch(listProductDetails(id))
         dispatch(listProductReviews(id, reviewPage))
     }, [dispatch, id, reviewPage]);
+
+    // 상품 조회수 트래킹
+    useEffect(() => {
+        if (!loading && product?._id) {
+            axios.post('/api/products/view/', { product_id: id })
+                .catch(() => { /* 실패해도 무시 */ })
+        }
+    }, [id, loading, product?._id]);
 
     // 삭제/수정 성공 시 리뷰 목록 새로고침
     useEffect(() => {

@@ -43,11 +43,11 @@ export default function HomeScreen() {
       {userInfo && <RecommendationSection />}
       
       {/* 구분선 */}
-      {userInfo && <hr className="my-5" style={{ border: '1px solid #dee2e6' }} />}
+      {userInfo && <hr className="my-5" style={{ border: '2px solid #dee2e6' }} />}
       
       {/* 전체 상품 목록 섹션 */}
       <div>
-        <h1>{userInfo ? 'All Products' : 'Latest Products'}</h1>
+        <h1>전체 상품</h1>
         <Row>
           {products.map((product) => (
             <Col key={product._id} sm={12} md={6} lg={4} xl={3}>

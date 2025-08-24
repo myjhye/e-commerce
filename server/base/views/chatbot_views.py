@@ -4,7 +4,7 @@ from rest_framework import status
 from langchain.chains import RetrievalQA
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
-from base.services.chatbot_service import get_vector_db, check_docs_folder, test_retrieval, build_vector_db
+from base.services.chatbot_service import get_vector_db, check_docs_folder
 from django.conf import settings
 import logging
 
