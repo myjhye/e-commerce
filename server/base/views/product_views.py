@@ -103,6 +103,37 @@ def purchaseProduct(request, pk):
 
 
 
+# 구매한 상품 조회
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getMyOrders(request):
+    user = request.user
+    orders = Order.objects.filter(user=user).order_by('-createdAt') # 최신순
+    data = []
+
+    for order in orders:
+        items = OrderItem.objects.filter(order=order)
+        item_list = [
+            {
+                'name': item.name,
+                'qty': item.qty,
+                'price': item.price,
+                'image': item.image,
+                'category': item.product.category if item.product else None,
+            } for item in items
+        ]
+
+        data.append({
+            'orderId': order._id,
+            'createdAt': order.createdAt,
+            'totalPrice': order.totalPrice,
+            'isPaid': order.isPaid,
+            'paidAt': order.paidAt,
+            'items': item_list,
+        })
+
+    return Response(data)
+
 # 상품 조회 기록 추가
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

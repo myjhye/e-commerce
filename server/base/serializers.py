@@ -1,9 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Product, Review, ProductView
+from .models import Product, Review, ProductView, Order, OrderItem
 from rest_framework_simplejwt.tokens import RefreshToken
 
-# 상품 직렬화 (Product 모델의 모든 필드를 JSON으로 변환)
+# 상품 직렬화
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
@@ -44,10 +44,33 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'   # or ['_id', 'name', 'rating', 'comment', 'createdAt']
 
 
-# 최근 본 상품 직렬화 (상품 정보 + 마지막 조회 시간 + 조회수)
+# 최근 본 상품 직렬화
 class ProductViewSerializer(serializers.ModelSerializer):
     product = ProductSerializer()  # Product를 중첩 직렬화하여 함께 반환
 
     class Meta:
         model = ProductView
-        fields = ['product', 'last_viewed', 'view_count']
+        fields = ['product', 'last_viewed', 'view_count'] # 상품 정보 + 마지막 조회 시간 + 조회수
+
+
+# 주문 아이템 직렬화
+class OrderItemSerializer(serializers.ModelSerializer):
+    category = serializers.CharField(source="product.category", read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ['name', 'qty', 'price', 'image', 'category'] # product.category를 끌어와 category 필드 추가 조회
+
+
+# 주문 직렬화
+class OrderSerializer(serializers.ModelSerializer):
+    items = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Order
+        fields = '__all__'  # 또는 필요한 필드만 선택
+
+    def get_items(self, obj):
+        items = obj.orderitem_set.all()
+        serializer = OrderItemSerializer(items, many=True)
+        return serializer.data
