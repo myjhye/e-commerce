@@ -8,6 +8,8 @@ services:
     volumes:
       - ./server:/app
       - ./media:/app/media
+    env_file:
+      - ./server/.env
     expose:
       - "8000"
 
