@@ -10,7 +10,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-e3xpxb9^rc7l62+w&wbwahiii=at&3%lcszjgat)gr^hwok@*s'
 
 # OpenAI 설정
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+OPENAI_API_KEY = config("OPENAI_API_KEY", default="")
+os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY  # 강제로 환경변수에 넣기
 
 DEBUG = True
 
