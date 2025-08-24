@@ -117,15 +117,17 @@ def build_vector_db(force_rebuild=False):
     
     # OpenAI 임베딩을 이용해 메모리 기반 Chroma DB 생성
     try:
-        embeddings = OpenAIEmbeddings(api_key=settings.OPENAI_API_KEY)
-        
-        # 메모리에만 저장 (파일 시스템 사용 안 함)
+        api_key = os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("❌ OPENAI_API_KEY가 환경변수에 설정되지 않았습니다.")
+
+        embeddings = OpenAIEmbeddings(api_key=api_key)
+
         _vectordb_instance = Chroma.from_documents(
             documents=docs,
             embedding=embeddings
-            # persist_directory 제거 - 메모리에만 저장
         )
-        
+
         _is_initialized = True
         logger.info("✅ 메모리 기반 벡터DB 생성 완료")
         return _vectordb_instance
