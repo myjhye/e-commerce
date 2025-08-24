@@ -44,7 +44,7 @@ def generateProductInfo(request):
     if not image_url:
         return Response({"error": "상품 이미지 URL이 필요합니다."}, status=400)
     
-    client = OpenAI(api_key=settings.OPENAI_API_KEY)
+    client = OpenAI()
 
     # 1. 실제 서버 파일 경로로 변환
     image_path = os.path.join(settings.MEDIA_ROOT, image_url.replace("/media/", ""))
@@ -77,7 +77,7 @@ def generateProductInfo(request):
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "너는 상품명과 이미지를 기반으로 브랜드/카테고리/설명을 생성하는 전문가야."},
                 {
