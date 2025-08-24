@@ -1,11 +1,10 @@
 from openai import OpenAI
 from django.conf import settings
+import os
 
 class LLMRecommendationService:
     def __init__(self):
-        self.client = OpenAI(
-            api_key=getattr(settings, 'OPENAI_API_KEY', '')
-        )
+        self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
     # OpenAI GPT를 활용해서 개인화된 추천 이유를 생성
     def generate_recommendations_with_reasons(self, user_profile, candidate_products, num_recommendations=5):
@@ -20,7 +19,7 @@ class LLMRecommendationService:
         try:
             # 3단계: OpenAI API 호출
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model="gpt-4o-mini",
                 messages=[
                     {
                         "role": "system", 
