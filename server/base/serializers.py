@@ -1,20 +1,20 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Product, Review
+from .models import Product, Review, ProductView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-# 상품(Product) 정보를 직렬화하는 시리얼라이저
+# 상품 직렬화 (Product 모델의 모든 필드를 JSON으로 변환)
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__' # Product 모델의 모든 필드를 JSON으로 변환
 
 
-# 사용자(User) 정보를 직렬화하는 기본 시리얼라이저
+# 사용자 직렬화
 class UserSerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField(read_only=True) # 사용자 이름: first_name이 비어 있으면 email 사용
-    _id = serializers.SerializerMethodField(read_only=True) # _id: id와 동일한 값이지만, 프론트엔드에서 일관된 필드명으로 쓰기 위함
-    isAdmin = serializers.SerializerMethodField(read_only=True) # isAdmin: User 모델의 is_staff 값을 리네이밍하여 반환
+    name = serializers.SerializerMethodField(read_only=True) # first_name이 없으면 email을 반환
+    _id = serializers.SerializerMethodField(read_only=True)# _id: User.id와 동일 (프론트에서 일관된 키 사용을 위해 추가)
+    isAdmin = serializers.SerializerMethodField(read_only=True) # isAdmin: User.is_staff 값 리네이밍
 
     class Meta:
         model = User
@@ -35,9 +35,19 @@ class UserSerializer(serializers.ModelSerializer):
             name = obj.email # 이름이 비어있으면 email 사용
 
         return name
-    
 
+
+# 리뷰 직렬화
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'   # or ['_id', 'name', 'rating', 'comment', 'createdAt']
+
+
+# 최근 본 상품 직렬화 (상품 정보 + 마지막 조회 시간 + 조회수)
+class ProductViewSerializer(serializers.ModelSerializer):
+    product = ProductSerializer()  # Product를 중첩 직렬화하여 함께 반환
+
+    class Meta:
+        model = ProductView
+        fields = ['product', 'last_viewed', 'view_count']

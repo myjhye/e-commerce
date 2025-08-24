@@ -3,9 +3,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
-from base.models import Product, Order, OrderItem
-from base.serializers import ProductSerializer
+from base.models import Product, Order, OrderItem, ProductView
+from base.serializers import ProductSerializer, ProductViewSerializer
 from django.shortcuts import get_object_or_404
+from django.db.models import F
 from datetime import datetime
 
 # 전체 상품 목록 조회
@@ -63,6 +64,7 @@ def createProduct(request):
 
 
 
+# 상품 구매
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def purchaseProduct(request, pk):
@@ -98,3 +100,40 @@ def purchaseProduct(request, pk):
     product.save()
 
     return Response({'detail': '구매가 완료되었습니다.'}, status=status.HTTP_200_OK)
+
+
+
+# 상품 조회 기록 추가
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_product_view(request):
+    product_id = request.data.get('product_id')
+    if not product_id:
+        return Response({'detail': 'product_id 누락'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        product = Product.objects.get(_id=product_id)
+    except Product.DoesNotExist:
+        return Response({'detail': '상품 없음'}, status=status.HTTP_404_NOT_FOUND)
+
+    pv, created = ProductView.objects.get_or_create(
+        user=request.user, 
+        product=product,
+        defaults={'view_count': 1} # 새로 생성될 때는 1로 시작
+    )
+    
+    if not created:
+        pv.view_count += 1 # 기존 레코드가 있으면 카운트 증가
+        pv.save(update_fields=['view_count'])
+    
+    return Response({'detail': 'ok'}, status=status.HTTP_201_CREATED)
+
+
+# 최근 본 상품 조회
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_product_views(request):
+    user = request.user
+    views = ProductView.objects.filter(user=user).order_by('-last_viewed')[:10]
+    serializer = ProductViewSerializer(views, many=True)
+    return Response(serializer.data)
