@@ -1,6 +1,9 @@
 from pathlib import Path
 from datetime import timedelta
 from decouple import config
+from django.conf import settings
+from rest_framework.settings import api_settings
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -11,7 +14,7 @@ OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1", "backend"]
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
@@ -132,3 +135,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 APPEND_SLASH = True
 
+# Django 4.x 이상에서는 이렇게 설정
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')
+
+# Django 내부에서 절대 경로 만들 때 참조
+DEFAULT_DOMAIN = "http://localhost:8000"
