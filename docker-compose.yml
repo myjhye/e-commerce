@@ -15,8 +15,9 @@ services:
     build: ./client
     container_name: react_app
     ports:
-      - "80:80" # 외부에서 React 접속 가능
+      - "80:80"
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf   # nginx 설정 덮어쓰기
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./media:/app/media   # 프론트 nginx도 media 볼륨 공유
     depends_on:
       - backend
