@@ -125,7 +125,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-MEDIA_URL = '/media/'
+MEDIA_URL = 'http://54.180.108.241/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # CORS 설정
