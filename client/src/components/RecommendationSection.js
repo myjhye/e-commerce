@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import axios from 'axios';
 import Rating from './Rating';
+import api from '../utils/axiosConfig';
 
 export default function RecommendationSection() {
     const [recommendations, setRecommendations] = useState([]);
@@ -37,21 +37,15 @@ export default function RecommendationSection() {
         try {
             setLoading(true);
             setError('');
-            
-            const response = await axios.get('/api/recommendations/', {
-                timeout: 60000,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userInfo?.token}`
-                }
-            });
+
+            const response = await api.get('/api/recommendations/', { timeout: 60000 });
             setRecommendations(response.data.recommendations || []);
         } catch (err) {
             console.error('추천 API 에러:', err);
             if (err.code === 'ECONNABORTED') {
-                setError('AI 추천을 생성하는 중입니다. 잠시만 기다려주세요...');
+            setError('AI 추천을 생성하는 중입니다. 잠시만 기다려주세요...');
             } else {
-                setError(err.response?.data?.error || '추천을 불러오는 중 오류가 발생했습니다.');
+            setError(err.response?.data?.error || '추천을 불러오는 중 오류가 발생했습니다.');
             }
         } finally {
             setLoading(false);

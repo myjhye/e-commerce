@@ -6,19 +6,19 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from base.serializers import UserSerializer
+from base.serializers import UserSerializer, UserSerializerWithToken
 from django.contrib.auth.hashers import make_password
 from rest_framework import status
 
 # JWT 토큰 발급 시 사용자 정보도 함께 포함시키는 커스텀 시리얼라이저
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
-        data = super().validate(attrs)  # 기본 access, refresh 토큰 생성
-
-        user_data = UserSerializer(self.user).data  # token 없이 유저 정보만 가져옴
-        data.update(user_data)  # 응답에 병합
-
+        data = super().validate(attrs)
+        serializer = UserSerializerWithToken(self.user).data # UserSerializerWithToken 사용
+        for k, v in serializer.items():
+            data[k] = v
         return data
+
 
 # 커스텀 시리얼라이저를 사용하는 로그인 뷰 클래스
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -44,14 +44,9 @@ def registerUser(request):
         access_token = str(refresh.access_token) # 액세스 토큰 추출
 
         # 사용자 정보 직렬화 (UserSerializer 사용)
-        serializer = UserSerializer(user, many=False)
+        serializer = UserSerializerWithToken(user, many=False)
 
-        # 사용자 정보 + 토큰 함께 응답
-        return Response({
-            **serializer.data,
-            'access': access_token,
-            'refresh': str(refresh)
-        })
+        return Response(serializer.data)
 
     except:
         message = {'detail': 'User with this email already exists'}

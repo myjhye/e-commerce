@@ -17,18 +17,19 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1", "backend"]
 
+# OpenAI API (필요시)
+OPENAI_API_KEY = config("OPENAI_API_KEY", default="")
+os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+
+# JWT 설정
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),   # 일반적으로 30분 ~ 1시간
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),      # 테스트용으로 7일 이상
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': False,
 
     'ALGORITHM': 'HS256',
-    'VERIFYING_KEY': None,
-    'AUDIENCE': None,
-    'ISSUER': None,
-
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
     'USER_ID_FIELD': 'id',
@@ -36,15 +37,10 @@ SIMPLE_JWT = {
 
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
-
     'JTI_CLAIM': 'jti',
-
-    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
-# Application definition
+# Application
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -53,24 +49,26 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'rest_framework',  # DRF 추가
-    'corsheaders',     # CORS 허용
-    'base',            # 사용자 앱
+    'rest_framework',
+    'corsheaders',
+    'base',  # 사용자 앱
     'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist', # 블랙리스트
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # CORS 미들웨어 가장 위에
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    # CSRF는 API 서버에서 보통 끄거나 별도 처리
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# URL 설정
 ROOT_URLCONF = 'urls'
 
 TEMPLATES = [
@@ -90,7 +88,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database
+# DB (테스트용 SQLite)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -98,47 +96,40 @@ DATABASES = {
     }
 }
 
-# Password validation
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
-
-# DRF 설정
+# DRF 기본 설정
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 8, # 페이징
-    'DEFAULT_AUTHENTICATION_CLASSES': ( # 모든 API 요청에서 기본적으로 Authorization: Bearer <토큰> 헤더를 사용한 JWT 인증을 수행
+    'PAGE_SIZE': 8,
+    'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
 
-# Localization
+# Locale
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Seoul'
 USE_I18N = True
 USE_TZ = True
 
-# Static & Media
+# Static / Media
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-MEDIA_URL = 'http://54.180.108.241/media/'
+MEDIA_URL = '/media/'   # 절대 URL ❌
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# CORS 설정
+# CORS
 CORS_ALLOW_ALL_ORIGINS = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-APPEND_SLASH = True
+# API 서버에서는 슬래시 자동 추가 비활성화 추천
+APPEND_SLASH = False
 
-# Django 4.x 이상에서는 이렇게 설정
+# 프록시 환경
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')
 
-# Django 내부에서 절대 경로 만들 때 참조
+# 프론트엔드에서 API 호출할 때 참조할 기본 도메인
 DEFAULT_DOMAIN = "http://localhost:8000"

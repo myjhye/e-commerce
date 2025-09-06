@@ -12,30 +12,63 @@ class ProductSerializer(serializers.ModelSerializer):
 
 # 사용자 직렬화
 class UserSerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField(read_only=True) # first_name이 없으면 email을 반환
-    _id = serializers.SerializerMethodField(read_only=True)# _id: User.id와 동일 (프론트에서 일관된 키 사용을 위해 추가)
-    isAdmin = serializers.SerializerMethodField(read_only=True) # isAdmin: User.is_staff 값 리네이밍
+    """
+    User 모델의 'first_name'을 'name'으로, 'is_staff'를 'is_admin'으로 변환하여
+    프론트엔드와 데이터 형식을 맞추는 시리얼라이저입니다.
+    """
+    # 'name' 이라는 이름의 커스텀 필드를 추가 (읽기 전용)
+    name = serializers.SerializerMethodField(read_only=True)
+    # 'is_admin' 이라는 이름의 커스텀 필드를 추가 (읽기 전용)
+    is_admin = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', '_id', 'username', 'email', 'name', 'isAdmin']
+        # API 응답에 포함될 필드 목록
+        fields = ['id', 'username', 'email', 'name', 'is_admin']
 
-    # _id 필드에 사용될 값 반환 (id 그대로)
-    def get__id(self, obj):
-        return obj.id
-
-    # isAdmin 필드에 사용될 값 반환 (is_staff 그대로)
-    def get_isAdmin(self, obj):
-        return obj.is_staff
-
-    # name 필드에 사용될 값 반환
     def get_name(self, obj):
+        """
+        'name' 필드의 값을 생성하는 메소드입니다.
+        User 모델의 first_name 값을 가져옵니다.
+        만약 first_name이 비어있다면, username을 대신 사용합니다.
+        """
         name = obj.first_name
         if name == '':
-            name = obj.email # 이름이 비어있으면 email 사용
-
+            name = obj.username
         return name
 
+    def get_is_admin(self, obj):
+        """
+        'is_admin' 필드의 값을 생성하는 메소드입니다.
+        User 모델의 is_staff 속성 값을 사용합니다. (is_staff는 관리자 사이트 접근 권한)
+        """
+        return obj.is_staff
+
+
+# 회원가입/로그인 시 토큰 발급을 위한 시리얼라이저
+class UserSerializerWithToken(UserSerializer):
+    """
+    UserSerializer를 상속받아, 사용자 정보에 JWT 토큰을 추가로 포함시키는 시리얼라이저입니다.
+    주로 회원가입이나 로그인 성공 시 사용됩니다.
+    """
+    # 'token' 이라는 이름의 커스텀 필드를 추가 (읽기 전용)
+    token = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = User
+        # 기존 UserSerializer의 필드에 'token'을 추가
+        fields = ['id', 'username', 'email', 'name', 'is_admin', 'token']
+
+    def get_token(self, obj):
+        """
+        'token' 필드의 값을 생성하는 메소드입니다.
+        사용자 객체(obj)를 기반으로 새로운 RefreshToken을 생성하고,
+        그 중 Access Token을 문자열로 반환합니다.
+        """
+        token = RefreshToken.for_user(obj)
+        return str(token.access_token)
+    
+    
 
 # 리뷰 직렬화
 class ReviewSerializer(serializers.ModelSerializer):
