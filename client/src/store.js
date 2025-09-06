@@ -1,39 +1,46 @@
-import { createStore, combineReducers, applyMiddleware } from 'redux'
-import { thunk } from 'redux-thunk'
-import { composeWithDevTools } from 'redux-devtools-extension'
+import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
+import { thunk } from 'redux-thunk';
 
-import { productDetailsReducer, productListReducer } from './reducers/productReducers'
-import { userLoginReducer, userRegisterReducer } from './reducers/userReducers'
-import { productReviewDeleteReducer, productReviewListReducer, productReviewUpdateReducer } from './reducers/reviewReducers'
+import { productDetailsReducer, productListReducer } from './reducers/productReducers';
+import { userLoginReducer, userRegisterReducer } from './reducers/userReducers';
+import {
+  productReviewDeleteReducer,
+  productReviewListReducer,
+  productReviewUpdateReducer,
+} from './reducers/reviewReducers';
 
 const reducer = combineReducers({
-    productList: productListReducer, // 상품 목록 조회
-    productDetails: productDetailsReducer, // 상품 상세 조회
+  productList: productListReducer,
+  productDetails: productDetailsReducer,
 
-    productReviewList: productReviewListReducer, // 상품 리뷰 조회
-    productReviewDelete: productReviewDeleteReducer,  // 상품 리뷰 삭제
-    productReviewUpdate: productReviewUpdateReducer,  // 상품 리뷰 수정
+  productReviewList: productReviewListReducer,
+  productReviewDelete: productReviewDeleteReducer,
+  productReviewUpdate: productReviewUpdateReducer,
 
-    userLogin: userLoginReducer, // 로그인
-    userRegister: userRegisterReducer, // 회원가입
-})
+  userLogin: userLoginReducer,
+  userRegister: userRegisterReducer,
+});
 
-const userInfoFromStorage = localStorage.getItem('userInfo') 
-                                            ? JSON.parse(localStorage.getItem('userInfo')) 
-                                            : null
+const userInfoFromStorage = localStorage.getItem('userInfo')
+  ? JSON.parse(localStorage.getItem('userInfo'))
+  : null;
 
 const initialState = {
-  userLogin: { 
-    userInfo: userInfoFromStorage 
+  userLogin: {
+    userInfo: userInfoFromStorage,
   },
-}
+};
 
-const middleware = [thunk]
+const middleware = [thunk];
+
+// Redux 5에서는 composeWithDevTools 대신 이렇게 처리
+const composeEnhancers =
+  window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
 const store = createStore(
   reducer,
   initialState,
-  composeWithDevTools(applyMiddleware(...middleware))
-)
+  composeEnhancers(applyMiddleware(...middleware))
+);
 
-export default store
+export default store;
