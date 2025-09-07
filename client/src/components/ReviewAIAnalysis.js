@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Card, Row, Col, Badge, Spinner, Alert, Button, ProgressBar } from 'react-bootstrap';
-import axios from 'axios'; // ✅ axios 사용
+import api from '../utils/axiosConfig'
 
 const ReviewAIAnalysis = ({ productId }) => {
     const [analysisData, setAnalysisData] = useState(null);
@@ -8,14 +8,13 @@ const ReviewAIAnalysis = ({ productId }) => {
     const [error, setError] = useState(null);
     const [showAnalysis, setShowAnalysis] = useState(false);
 
-    // ✅ AI 분석 데이터 가져오기
+    // AI 분석 데이터 가져오기
     const fetchAnalysis = async () => {
         setLoading(true);
         setError(null);
         
         try {
-            // ✅ axios는 interceptor가 자동으로 토큰 붙여줌
-            const { data } = await axios.get(`/api/ai/review-analysis/${productId}/`);
+            const { data } = await api.get(`/api/ai/review-analysis/${productId}/`);
 
             setAnalysisData(data);
             setShowAnalysis(true);

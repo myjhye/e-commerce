@@ -10,6 +10,7 @@ import ProductReviewList from '../components/ProductReviewList'
 import ReviewAIAnalysis from '../components/ReviewAIAnalysis'
 import Paginate from '../components/Paginate'
 import axios from 'axios';
+import api from '../utils/axiosConfig';
 
 export default function ProductScreen() {
     const { id } = useParams();
@@ -92,7 +93,7 @@ export default function ProductScreen() {
 
     const handlePurchase = async () => {
         try {
-            await axios.post(`/api/products/${id}/purchase/`)
+            await api.post(`/api/products/${id}/purchase/`)
             alert('구매가 완료되었습니다!')
             dispatch(listProductDetails(id)) // 상품 상세 정보 새로고침 (재고 수량 반영)
         } 

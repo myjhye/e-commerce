@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import axios from 'axios'
 import { Card, Image, Container, Row, Col } from 'react-bootstrap'
 import moment from 'moment'
 import ProfileSidebar from '../components/ProfileSidebar'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import api from '../utils/axiosConfig'
 
 export default function ProfileScreen() {
     const [orders, setOrders] = useState([])
@@ -13,7 +13,7 @@ export default function ProfileScreen() {
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const { data } = await axios.get('/api/products/orders/')
+                const { data } = await api.get('/api/products/orders/')
                 setOrders(data)
                 setLoading(false)
             } catch (err) {

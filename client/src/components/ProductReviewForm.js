@@ -1,9 +1,9 @@
-import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { Form, Button } from 'react-bootstrap'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { listProductReviews, updateProductReview } from '../actions/reviewActions'
+import api from '../utils/axiosConfig'
 
 // 별점 컴포넌트
 function StarRating({ rating, onRatingChange, interactive = false }) {
@@ -124,7 +124,7 @@ export default function ProductReviewForm({
             
             // 등록 모드
             else {
-                const { data } = await axios.post(
+                const { data } = await api.post(
                     `/api/reviews/${productId}/create/`,
                     { rating, comment }
                 )

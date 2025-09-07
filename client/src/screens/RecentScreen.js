@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import axios from 'axios'
 import { Card, Image, Container, Row, Col } from 'react-bootstrap'
 import ProfileSidebar from '../components/ProfileSidebar'
 import moment from 'moment'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import api from '../utils/axiosConfig'
 
 export default function RecentScreen() {
     const [recentProducts, setRecentProducts] = useState([])
@@ -13,7 +13,7 @@ export default function RecentScreen() {
     useEffect(() => {
         const fetchRecent = async () => {
             try {
-                const { data } = await axios.get('/api/products/recent/')
+                const { data } = await api.get('/api/products/recent/')
                 setRecentProducts(data)
                 setLoading(false)
             } catch (err) {

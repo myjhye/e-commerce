@@ -1,4 +1,3 @@
-import axios from 'axios'
 import { 
     USER_LOGIN_FAIL, 
     USER_LOGIN_REQUEST, 
@@ -8,6 +7,7 @@ import {
     USER_REGISTER_REQUEST, 
     USER_REGISTER_SUCCESS 
 } from "../constants/userConstants"
+import api from '../utils/axiosConfig'
 
 // 로그인 액션
 export const login = (email, password) => async (dispatch) => {
@@ -22,7 +22,7 @@ export const login = (email, password) => async (dispatch) => {
             }
         }
 
-        const { data } = await axios.post(
+        const { data } = await api.post(
             '/api/users/login/',
             { 
                 'username': email, 
@@ -72,7 +72,7 @@ export const register = (name, email, password) => async (dispatch) => {
             }
         }
 
-        const { data } = await axios.post(
+        const { data } = await api.post(
             '/api/users/register/',
             { 
                 'name': name,

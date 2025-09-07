@@ -1,4 +1,3 @@
-import axios from 'axios'
 import {
     PRODUCT_REVIEW_LIST_REQUEST,
     PRODUCT_REVIEW_LIST_SUCCESS,
@@ -12,12 +11,13 @@ import {
     PRODUCT_REVIEW_UPDATE_SUCCESS,
     PRODUCT_REVIEW_UPDATE_FAIL
 } from '../constants/reviewConstants'
+import api from '../utils/axiosConfig'
 
 export const listProductReviews = (productId, page = 1) => async (dispatch) => {
     try {
         dispatch({ type: PRODUCT_REVIEW_LIST_REQUEST })
 
-        const { data } = await axios.get(`/api/reviews/${productId}/?page=${page}`)
+        const { data } = await api.get(`/api/reviews/${productId}/?page=${page}`)
 
         dispatch({
             type: PRODUCT_REVIEW_LIST_SUCCESS,
@@ -43,7 +43,7 @@ export const updateProductReview = (productId, reviewId, reviewData) => async (d
     try {
         dispatch({ type: PRODUCT_REVIEW_UPDATE_REQUEST })
 
-        const { data } = await axios.put(
+        const { data } = await api.put(
             `/api/reviews/${productId}/${reviewId}/update/`,
             reviewData
         )
@@ -69,7 +69,7 @@ export const deleteProductReview = (productId, reviewId) => async (dispatch) => 
     try {
         dispatch({ type: PRODUCT_REVIEW_DELETE_REQUEST })
 
-        await axios.delete(`/api/reviews/${productId}/${reviewId}/delete/`)
+        await api.delete(`/api/reviews/${productId}/${reviewId}/delete/`)
 
         dispatch({ type: PRODUCT_REVIEW_DELETE_SUCCESS })
 

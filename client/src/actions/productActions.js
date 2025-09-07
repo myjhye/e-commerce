@@ -1,4 +1,3 @@
-import axios from 'axios'
 import {
   PRODUCT_LIST_REQUEST,
   PRODUCT_LIST_SUCCESS,
@@ -7,6 +6,7 @@ import {
   PRODUCT_DETAILS_FAIL,
   PRODUCT_DETAILS_REQUEST,
 } from '../constants/productConstants'
+import api from '../utils/axiosConfig'
 
 
 // 상품 목록 조회 액션
@@ -14,7 +14,7 @@ export const listProducts = ({ page = 1 } = {}) => async (dispatch) => {
   try {
     dispatch({ type: PRODUCT_LIST_REQUEST })
 
-    const { data } = await axios.get('/api/products/', {
+    const { data } = await api.get('/api/products/', {
       params: page !== 1 ? { page } : {},
     });
 
@@ -41,7 +41,7 @@ export const listProductDetails = (id) => async (dispatch) => {
     try {
         dispatch({ type: PRODUCT_DETAILS_REQUEST })
 
-        const { data } = await axios.get(`/api/products/${id}/`)
+        const { data } = await api.get(`/api/products/${id}/`)
 
         dispatch({
             type: PRODUCT_DETAILS_SUCCESS,

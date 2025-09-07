@@ -1,7 +1,7 @@
-import axios from 'axios';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Form, Button, Row, Col, Alert, Spinner, Card, Badge } from 'react-bootstrap';
+import api from '../utils/axiosConfig'
 
 export default function ProductCreateScreen() {
   const [name, setName] = useState('');
@@ -29,7 +29,7 @@ export default function ProductCreateScreen() {
 
   const checkLangGraphStatus = async () => {
     try {
-      const { data } = await axios.get('/api/ai/check-langgraph-status/');
+      const { data } = await api.get('/api/ai/check-langgraph-status/');
       setLangGraphAvailable(data.langgraph_available);
       console.log('LangGraph 상태:', data);
     } catch (error) {
@@ -46,7 +46,7 @@ export default function ProductCreateScreen() {
     setLoadingCreate(true);
 
     try {
-      const { data } = await axios.post('/api/products/create/', {
+      const { data } = await api.post('/api/products/create/', {
         name,
         price,
         image,
@@ -87,7 +87,7 @@ export default function ProductCreateScreen() {
     setUploading(true);
 
     try {
-      const { data } = await axios.post('/api/upload/', formData, {
+      const { data } = await api.post('/api/upload/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setImage(data.image_name);  // 파일 이름만 저장
@@ -120,7 +120,7 @@ export default function ProductCreateScreen() {
       
       const debugParam = useLangGraph ? '?debug=true' : '';
       
-      const { data } = await axios.post(`${endpoint}${debugParam}`, {
+      const { data } = await api.post(`${endpoint}${debugParam}`, {
         name,
         image_url: `/media/${image}`
       });

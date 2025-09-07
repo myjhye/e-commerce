@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import Rating from './Rating';
+import { BookmarkIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import api from '../utils/axiosConfig';
 
 export default function RecommendationSection() {
@@ -11,17 +10,11 @@ export default function RecommendationSection() {
     const [error, setError] = useState('');
     const [currentIndex, setCurrentIndex] = useState(0);
 
-    // 로그인 상태 확인
     const userLogin = useSelector(state => state.userLogin);
     const { userInfo } = userLogin;
 
-    // 한 번에 보여줄 상품 개수
     const itemsPerPage = 4;
-    
-    // 총 페이지 수 계산
     const totalPages = Math.ceil(recommendations.length / itemsPerPage);
-    
-    // 현재 페이지에서 보여줄 상품들
     const currentItems = recommendations.slice(
         currentIndex * itemsPerPage,
         (currentIndex + 1) * itemsPerPage
@@ -37,236 +30,131 @@ export default function RecommendationSection() {
         try {
             setLoading(true);
             setError('');
-
-            const response = await api.get('/api/recommendations/', { timeout: 60000 });
+            
+            const response = await api.get('/api/recommendations/');
             setRecommendations(response.data.recommendations || []);
         } catch (err) {
             console.error('추천 API 에러:', err);
             if (err.code === 'ECONNABORTED') {
-            setError('AI 추천을 생성하는 중입니다. 잠시만 기다려주세요...');
+                setError('AI 추천을 생성하는 중입니다. 잠시만 기다려주세요...');
             } else {
-            setError(err.response?.data?.error || '추천을 불러오는 중 오류가 발생했습니다.');
+                setError(err.response?.data?.error || '추천을 불러오는 중 오류가 발생했습니다.');
             }
         } finally {
             setLoading(false);
         }
     };
 
-    // 이전 페이지로 이동
     const goToPrevious = () => {
         setCurrentIndex(prev => (prev > 0 ? prev - 1 : totalPages - 1));
     };
 
-    // 다음 페이지로 이동
     const goToNext = () => {
         setCurrentIndex(prev => (prev < totalPages - 1 ? prev + 1 : 0));
     };
 
-    // 로그인하지 않은 사용자에게는 표시하지 않음
     if (!userInfo) {
         return null;
     }
 
     return (
-        <div className="recommendation-section mb-5">
+        <div className="mb-12">
             {/* 헤더 */}
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h2 className="mb-0">
-                    <span style={{ fontWeight: 'bold', color: '#007bff' }}>👋{userInfo.name}</span>님을 위한 맞춤 추천
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-900">
+                    {userInfo.name}님을 위한 추천 상품
                 </h2>
-                
-                {/* 네비게이션 버튼 (추천이 4개 이상일 때만 표시) */}
                 {!loading && !error && recommendations.length > itemsPerPage && (
-                    <div className="d-flex align-items-center">
-                        <span className="text-muted me-3">
+                    <div className="hidden md:flex items-center space-x-2">
+                        <span className="text-sm text-gray-600 font-medium">
                             {currentIndex + 1} / {totalPages}
                         </span>
-                        <div className="btn-group">
-                            <Button 
-                                variant="outline-primary" 
-                                size="sm"
-                                onClick={goToPrevious}
-                                style={{ borderRadius: '20px 0 0 20px' }}
-                            >
-                                ‹
-                            </Button>
-                            <Button 
-                                variant="outline-primary" 
-                                size="sm"
-                                onClick={goToNext}
-                                style={{ borderRadius: '0 20px 20px 0' }}
-                            >
-                                ›
-                            </Button>
-                        </div>
+                        <button onClick={goToPrevious} className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-500">
+                            <ChevronLeftIcon />
+                        </button>
+                        <button onClick={goToNext} className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-500">
+                            <ChevronRightIcon />
+                        </button>
                     </div>
                 )}
             </div>
 
+            {/* 로딩 상태 UI */}
             {loading && (
-                <div className="text-center py-5">
-                    <Spinner animation="border" variant="primary" style={{ width: '3rem', height: '3rem' }} />
-                    <p className="mt-3 text-muted" style={{ fontSize: '1.3rem' }}>AI가 맞춤 추천을 생성하고 있습니다...</p>
+                <div className="flex flex-col items-center justify-center py-10 bg-gray-50 rounded-lg">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <p className="mt-4 text-gray-600 text-lg">AI가 맞춤 추천을 생성하고 있습니다...</p>
                 </div>
             )}
 
+            {/* 에러 상태 UI */}
             {error && (
-                <Alert variant="warning" className="text-center">
-                    <Alert.Heading style={{ fontSize: '1.5rem' }}>추천을 불러올 수 없습니다</Alert.Heading>
-                    <p className="mb-2" style={{ fontSize: '1.1rem' }}>{error}</p>
-                    <Button variant="outline-warning" onClick={fetchRecommendations} style={{ fontSize: '1.1rem' }}>
+                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md text-center">
+                    <h3 className="font-bold text-lg mb-2">추천을 불러올 수 없습니다</h3>
+                    <p className="mb-3">{error}</p>
+                    <button onClick={fetchRecommendations} className="bg-yellow-500 text-white font-semibold py-2 px-4 rounded hover:bg-yellow-600 transition-colors">
                         다시 시도
-                    </Button>
-                </Alert>
+                    </button>
+                </div>
             )}
 
+            {/* 추천 상품이 없는 경우의 UI */}
             {!loading && !error && recommendations.length === 0 && (
-                <Alert variant="info" className="text-center">
-                    <Alert.Heading style={{ fontSize: '1.5rem' }}>아직 추천할 상품이 없어요</Alert.Heading>
-                    <p style={{ fontSize: '1.1rem' }}>더 많은 상품을 둘러보시면 개인 맞춤 추천을 받을 수 있습니다!</p>
-                </Alert>
+                <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md text-center">
+                    <h3 className="font-bold text-lg mb-2">아직 추천할 상품이 없어요</h3>
+                    <p>더 많은 상품을 둘러보시면 개인 맞춤 추천을 받을 수 있습니다!</p>
+                </div>
             )}
 
+            {/* 추천 상품 그리드 */}
             {!loading && !error && recommendations.length > 0 && (
-                <div className="position-relative">
-                    {/* 왼쪽 화살표 (큰 화면에서만) */}
-                    {recommendations.length > itemsPerPage && (
-                        <>
-                            <Button
-                                variant="light"
-                                className="position-absolute start-0 top-50 translate-middle-y bg-white shadow-sm border d-none d-lg-flex"
-                                style={{ 
-                                    zIndex: 10, 
-                                    borderRadius: '50%', 
-                                    width: '50px', 
-                                    height: '50px',
-                                    left: '-25px',
-                                    justifyContent: 'center',
-                                    alignItems: 'center'
-                                }}
-                                onClick={goToPrevious}
-                            >
-                                <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>‹</span>
-                            </Button>
-
-                            {/* 오른쪽 화살표 */}
-                            <Button
-                                variant="light"
-                                className="position-absolute end-0 top-50 translate-middle-y bg-white shadow-sm border d-none d-lg-flex"
-                                style={{ 
-                                    zIndex: 10, 
-                                    borderRadius: '50%', 
-                                    width: '50px', 
-                                    height: '50px',
-                                    right: '-25px',
-                                    justifyContent: 'center',
-                                    alignItems: 'center'
-                                }}
-                                onClick={goToNext}
-                            >
-                                <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>›</span>
-                            </Button>
-                        </>
-                    )}
-
-                    {/* 상품 그리드 */}
-                    <Row className="g-3">
-                        {currentItems.map((rec, index) => (
-                            <Col key={rec.product.id} sm={12} md={6} lg={4} xl={3} className="mb-4">
-                                <Card className="h-100 recommendation-card" style={{ border: '2px solid #e3f2fd', position: 'relative' }}>
-                                    {/* 추천 배지 */}
-                                    <div 
-                                        className="position-absolute"
-                                        style={{
-                                            top: '10px',
-                                            right: '10px',
-                                            background: 'linear-gradient(45deg, #007bff, #0056b3)',
-                                            color: 'white',
-                                            padding: '6px 12px',
-                                            borderRadius: '12px',
-                                            fontSize: '0.9rem',
-                                            fontWeight: 'bold',
-                                            zIndex: 1
-                                        }}
-                                    >
-                                        AI 추천
-                                    </div>
-
-                                    <Link to={`/product/${rec.product.id}`} className="text-decoration-none">
-                                        <Card.Img
-                                            variant="top"
-                                            src={rec.product.image}
-                                            alt={rec.product.name}
-                                            style={{ 
-                                                height: '200px', 
-                                                objectFit: 'cover',
-                                                transition: 'transform 0.2s'
-                                            }}
-                                            onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
-                                            onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
-                                        />
-                                    </Link>
-                                    
-                                    <Card.Body className="d-flex flex-column">
-                                        <Link to={`/product/${rec.product.id}`} className="text-decoration-none">
-                                            <Card.Title className="h5 text-dark" style={{ fontSize: '1.2rem' }}>
-                                                {rec.product.name}
-                                            </Card.Title>
-                                        </Link>
-                                        
-                                        <div className="mb-2">
-                                            <Rating
-                                                value={rec.product.rating}
-                                                text={`${rec.product.num_reviews} reviews`}
-                                                color="#f8e825"
+                <div className="relative">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-8">
+                        {currentItems.map((rec) => {
+                            const formattedPrice = new Intl.NumberFormat('ko-KR').format(rec.product.price);
+                            return (
+                                <div key={rec.product.id}>
+                                    <Link to={`/product/${rec.product.id}`} className="block group">
+                                        <div className="aspect-square overflow-hidden bg-gray-100 rounded-lg mb-3 border border-gray-200/80 relative">
+                                            <img
+                                                src={rec.product.image}
+                                                alt={rec.product.name}
+                                                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
                                             />
+                                            <div className="absolute top-2 right-2 bg-black/50 text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
+                                                AI 추천
+                                            </div>
                                         </div>
-                                        
-                                        <div className="mb-2">
-                                            <span className="text-muted" style={{ fontSize: '1rem' }}>
-                                                {rec.product.category} • {rec.product.brand}
-                                            </span>
+                                    </Link>
+                                    <div className="px-1 space-y-1">
+                                        <p className="text-sm font-bold truncate">{rec.product.brand || 'No Brand'}</p>
+                                        <p className="text-sm text-gray-700 line-clamp-2 leading-tight h-8">{rec.product.name}</p>
+                                        <p className="text-base font-bold text-gray-900 pt-1">{formattedPrice}원</p>
+                                        <p className="text-sm text-gray-500">즉시 구매가</p>
+                                        <div className="flex items-center text-gray-500 pt-1">
+                                            <BookmarkIcon />
+                                            <span className="text-xs ml-1 font-medium">{rec.product.num_reviews || 0}</span>
                                         </div>
-                                        
-                                        <Card.Text className="h4 text-primary mb-2" style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-                                            ${rec.product.price.toLocaleString()}
-                                        </Card.Text>
-                                        
-                                        {/* 추천 이유 */}
-                                        <Card.Text className="text-muted mb-3 flex-grow-1 fs-5" style={{ lineHeight: '1.6' }}>
-                                            <strong className="fs-5">💡 추천 이유:</strong><br />
-                                            {rec.reason}
-                                        </Card.Text>
-                                    </Card.Body>
-                                </Card>
-                            </Col>
-                        ))}
-                    </Row>
-
-                    {/* 하단 인디케이터 (모바일에서 표시) */}
+                                        <p className="text-sm text-gray-600 pt-2 border-t border-gray-100 mt-2">
+                                            <span className="font-semibold text-blue-600">AI 추천 이유:</span> {rec.reason}
+                                        </p>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    {/* 모바일 네비게이션 */}
                     {recommendations.length > itemsPerPage && (
-                        <div className="d-flex justify-content-center mt-4 d-lg-none">
-                            <div className="d-flex align-items-center">
-                                <Button 
-                                    variant="outline-primary" 
-                                    size="sm"
-                                    onClick={goToPrevious}
-                                    className="me-2"
-                                >
-                                    이전
-                                </Button>
-                                <span className="mx-3 text-muted">
-                                    {currentIndex + 1} / {totalPages}
-                                </span>
-                                <Button 
-                                    variant="outline-primary" 
-                                    size="sm"
-                                    onClick={goToNext}
-                                    className="ms-2"
-                                >
-                                    다음
-                                </Button>
-                            </div>
+                        <div className="md:hidden flex justify-center items-center mt-6 space-x-4">
+                            <button onClick={goToPrevious} className="bg-gray-800 text-white font-semibold py-2 px-6 rounded-lg hover:bg-black transition-colors">
+                                이전
+                            </button>
+                            <span className="text-sm text-gray-600 font-medium">
+                                {currentIndex + 1} / {totalPages}
+                            </span>
+                            <button onClick={goToNext} className="bg-gray-800 text-white font-semibold py-2 px-6 rounded-lg hover:bg-black transition-colors">
+                                다음
+                            </button>
                         </div>
                     )}
                 </div>
