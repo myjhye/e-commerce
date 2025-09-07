@@ -16,6 +16,11 @@
 단순한 쇼핑몰 기능을 넘어, AI를 통해 사용자 경험을 향상시키고 운영을 자동화하는 것을 목표로 합니다. <br />
 **Docker**를 활용한 컨테이너 기반으로 설계되어, 일관성 있는 개발 및 실행 환경을 제공합니다.
 
+<br><br>
+
+<img width="2880" height="3297" alt="image" src="https://github.com/user-attachments/assets/98e446f9-25c4-46d5-92c7-fcc038f03fa8" />
+
+<br><br>
 
 ## 목차
 - [주요 기능 (Features)](#주요-기능-features)
