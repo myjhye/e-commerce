@@ -18,15 +18,16 @@
 
 
 ## 목차
-- [주요 기능 (Features)](#-주요-기능-features)
-- [기술 스택 (Tech Stack)](#️-기술-스택-tech-stack)
-- [프로젝트 실행 방법 (Getting Started)](#-프로젝트-실행-방법-getting-started)
-- [주요 문제 해결 및 학습 경험](#-주요-문제-해결-및-학습-경험)
+- [주요 기능 (Features)](#주요-기능-features)
+- [AI 기반 특화 기능 (AI Features)](#ai-기반-특화-기능-ai-features)
+- [인프라 및 배포 (Infrastructure & Deployment)](#인프라-및-배포-infrastructure--deployment)
+- [기술 스택 (Tech Stack)](#기술-스택-tech-stack)
+- [주요 문제 해결 및 학습 경험 (Troubleshooting & Learnings)](#주요-문제-해결-및-학습-경험-troubleshooting--learnings)
 
 <br>
 
 
-## 주요 기능
+## 주요 기능 (Features)
 
 ### E-commerce 핵심 기능
 - **상품 관리**: 상품 목록/상세 조회 및 등록/수정/삭제 (CRUD)  
@@ -37,7 +38,7 @@
 <br>
 
 
-## 🚀 AI 기반 특화 기능
+## 🚀 AI 기반 특화 기능 (AI Features)
 
 - **상품 정보 자동 생성 (with LangGraph):** 상품명과 이미지만으로 브랜드, 카테고리, 마케팅 설명을 자동 생성하는 AI 워크플로우 구축  
 - **실시간 RAG 챗봇 (with LangChain):** 자체 문서(`.md` 파일) 기반으로 정확한 답변을 제공하는 검색 증강 생성(RAG) 챗봇 구현  
@@ -47,7 +48,7 @@
 <br>
 
 
-## 인프라 및 배포
+## 인프라 및 배포 (Infrastructure & Deployment)
 - **Docker 컨테이너화:** Backend(Django), Frontend(React), Proxy(Nginx) 환경 분리 및 `Docker Compose`를 통한 통합 관리
 - **AWS EC2 배포:** Docker 기반 전체 애플리케이션의 클라우드 배포 및 운영 경험
 - **Nginx 리버스 프록시:** API 요청(`/api/*`)과 정적 파일 요청(`/`)을 효율적으로 분배하여 서버 부하 감소
@@ -74,7 +75,7 @@
 <br>
 
 
-## 주요 문제 해결 및 학습 경험
+## 주요 문제 해결 및 학습 경험 (Troubleshooting & Learnings)
 - **AI 워크플로우 설계**: 단일 LLM 호출의 ‘블랙박스’ 문제를 해소하기 위해, LangGraph로 추론 과정을 단계별로 분해하고 각 단계의 신뢰도를 추적할 수 있는 파이프라인을 구축했습니다. 이를 통해 제어 가능하고 안정적인 AI 서비스를 설계하는 경험을 쌓았습니다.  
 
 - **프론트엔드 안정성 강화**: 고급 AI 기능이 실패할 경우 자동으로 기본 API를 재호출하는 **스마트 폴백(Fallback)** 로직을 적용했습니다. 특정 기능 장애가 전체 서비스 중단으로 이어지지 않도록 방어적인 코드를 작성하며 안정적인 UX를 구축했습니다.  
