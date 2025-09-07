@@ -1,25 +1,30 @@
+// HomeScreen.js
+
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useSearchParams, useLocation } from "react-router-dom";
-import { Row, Col, Card, Container } from "react-bootstrap";
-import { Link } from "react-router-dom";
-
-import Rating from "../components/Rating";
-import Paginate from "../components/Paginate";
-import RecommendationSection from "../components/RecommendationSection";
 import { listProducts } from "../actions/productActions";
+import Paginate from "../components/Paginate";
+import ProductGrid from "../components/ProductGrid";
+import RecommendationSection from "../components/RecommendationSection";
+
+// KREAM 스타일 섹션 제목 컴포넌트
+const SectionHeader = ({ title, description }) => (
+  <div className="mb-4">
+    <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+    {description && <p className="text-sm text-gray-500">{description}</p>}
+  </div>
+);
 
 export default function HomeScreen() {
   const dispatch = useDispatch();
 
-  const { 
-    loading, 
-    error, 
-    products = [], 
-    pages = 1 
+  const {
+    loading,
+    error,
+    products = [],
+    pages = 1
   } = useSelector((state) => state.productList);
 
-  // 로그인 상태 확인 (추천 섹션 표시용)
   const userLogin = useSelector(state => state.userLogin);
   const { userInfo } = userLogin;
 
@@ -34,54 +39,33 @@ export default function HomeScreen() {
     window.scrollTo(0, 0);
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>Loading...</div>; // 실제 앱에서는 스켈레톤 UI 등으로 대체 가능
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <Container>
-      {/* 개인 맞춤 추천 섹션 (로그인 시에만 표시) */}
-      {userInfo && <RecommendationSection />}
-      
-      {/* 구분선 */}
-      {userInfo && <hr className="my-5" style={{ border: '2px solid #dee2e6' }} />}
-      
-      {/* 전체 상품 목록 섹션 */}
-      <div>
-        <h1>전체 상품</h1>
-        <Row>
-          {products.map((product) => (
-            <Col key={product._id} sm={12} md={6} lg={4} xl={3}>
-              <Card className="my-3 p-3 rounded">
-                <Link to={`/product/${product._id}`}>
-                  <Card.Img src={product.image} variant="top" />
-                </Link>
-                <Card.Body>
-                  <Link to={`/product/${product._id}`}>
-                    <Card.Title as="div">
-                      <strong>{product.name}</strong>
-                    </Card.Title>
-                  </Link>
-                  <Card.Text as="div">
-                    <Rating
-                      value={product.rating}
-                      text={`${product.numReviews} reviews`}
-                      color="#f8e825"
-                    />
-                  </Card.Text>
-                  <Card.Text as="h3">${product.price}</Card.Text>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-        
+    <div className="bg-white">
+      <div className="container mx-auto px-4 py-8">
+        {/* 개인 맞춤 추천 섹션 (로그인 시에만 표시) */}
+        {userInfo && <RecommendationSection />}
+
+        {/* 구분선 (추천 섹션이 있을 때만 표시) */}
+        {userInfo && <div className="my-10 border-t border-gray-100" />}
+
+        {/* 상품 그리드 섹션 */}
+        <section>
+          <SectionHeader title="모든 상품" description="다양한 상품들을 둘러보세요." />
+          <ProductGrid products={products} />
+        </section>
+
         {/* 페이지네이션 */}
-        <Paginate
-          page={currentPage}
-          pages={pages}
-          onPageChange={handlePageChange}
-        />
+        <div className="mt-12">
+          <Paginate
+            page={currentPage}
+            pages={pages}
+            onPageChange={handlePageChange}
+          />
+        </div>
       </div>
-    </Container>
+    </div>
   );
 }

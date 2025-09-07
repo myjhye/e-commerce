@@ -20,11 +20,14 @@ import RecentScreen from './screens/RecentScreen';
 function App() {
   return (
     <Provider store={store}>
-      <div className="App">
+      {/* 2. Tailwind flexbox로 sticky footer 레이아웃 구현 */}
+      <div className="flex flex-col min-h-screen">
         <Router>
           <Header />
-          <main className="py-3">
-            <Container>
+          {/* 3. main 태그가 남은 공간을 모두 차지하도록 flex-grow 적용 */}
+          <main className="flex-grow">
+            {/* 4. react-bootstrap의 Container를 Tailwind 방식으로 교체 */}
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <Routes>
                 <Route path='/' element={<HomeScreen />} />
                 
@@ -39,7 +42,7 @@ function App() {
 
                 <Route path='/chatbot' element={<ChatbotScreen />} />
               </Routes>
-            </Container>
+            </div>
           </main>
           <Footer />
         </Router>
