@@ -70,7 +70,7 @@
 | **AI** | `OpenAI GPT-4o`, `LangChain`, `LangGraph` | AI 워크플로우 및 RAG 챗봇, 추천 시스템 구현 |
 | | `Hugging Face Transformers` | 텍스트 감성 분석 |
 | | `ChromaDB` | RAG 챗봇을 위한 벡터 데이터베이스 |
-| **DevOps** | `AWS EC2`, `Docker`, `Docker Compose`, `Nginx`| 컨테이너화, 배포 및 운영 |
+| **DevOps** | `Docker`, `Docker Compose`, `Nginx`| 컨테이너화, 배포 및 운영 |
 
 <br>
 
