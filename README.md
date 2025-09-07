@@ -55,7 +55,6 @@
 
 ## 인프라 및 배포 (Infrastructure & Deployment)
 - **Docker 컨테이너화:** Backend(Django), Frontend(React), Proxy(Nginx) 환경 분리 및 `Docker Compose`를 통한 통합 관리
-- **AWS EC2 배포:** Docker 기반 전체 애플리케이션의 클라우드 배포 및 운영 경험
 - **Nginx 리버스 프록시:** API 요청(`/api/*`)과 정적 파일 요청(`/`)을 효율적으로 분배하여 서버 부하 감소
 
 <br>
