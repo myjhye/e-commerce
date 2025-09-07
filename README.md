@@ -38,7 +38,7 @@
 <br>
 
 
-## 🚀 AI 기반 특화 기능 (AI Features)
+## AI 기반 특화 기능 (AI Features)
 
 - **상품 정보 자동 생성 (with LangGraph):** 상품명과 이미지만으로 브랜드, 카테고리, 마케팅 설명을 자동 생성하는 AI 워크플로우 구축  
 - **실시간 RAG 챗봇 (with LangChain):** 자체 문서(`.md` 파일) 기반으로 정확한 답변을 제공하는 검색 증강 생성(RAG) 챗봇 구현  
