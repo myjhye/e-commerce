@@ -6,14 +6,14 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-
+from base.views.user_views import MyTokenObtainPairView
 from base.views import upload_views as upload_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
     # JWT 인증 엔드포인트
-    path('api/users/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/users/login/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/users/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     # 앱 관련 API

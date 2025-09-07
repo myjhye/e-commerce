@@ -11,31 +11,28 @@ import {
 
 // 로그인 리듀서
 export const userLoginReducer = (state = {}, action) => {
+  switch (action.type) {
+    case USER_LOGIN_REQUEST:
+      return { loading: true }
 
-    switch (action.type) {
-        case USER_LOGIN_REQUEST:
-            return { 
-                loading: true 
-            }
+    case USER_LOGIN_SUCCESS:
+      return {
+        loading: false,
+        userInfo: {
+          ...state.userInfo,   // 기존 데이터 유지
+          ...action.payload,   // 새 토큰 덮어쓰기
+        },
+      }
 
-        case USER_LOGIN_SUCCESS:
-            return { 
-                loading: false, 
-                userInfo: action.payload 
-            }
+    case USER_LOGIN_FAIL:
+      return { loading: false, error: action.payload }
 
-        case USER_LOGIN_FAIL:
-            return { 
-                loading: false, 
-                error: action.payload 
-            }
+    case USER_LOGOUT:
+      return {}
 
-        case USER_LOGOUT:
-            return {}
-
-        default:
-            return state
-    }
+    default:
+      return state
+  }
 }
 
 

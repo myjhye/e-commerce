@@ -1,9 +1,16 @@
 import axios from 'axios';
 import store from '../store';
 import { logout } from '../actions/userActions';
+import { USER_LOGIN_SUCCESS } from '../constants/userConstants';
+
+const api = axios.create({
+  baseURL: "http://127.0.0.1:8000",
+  timeout: 5000,
+  headers: { "Content-Type": "application/json" },
+});
 
 // Request interceptor (항상 Authorization 헤더 추가)
-axios.interceptors.request.use(
+api.interceptors.request.use(
   (config) => {
     try {
       const userInfo = localStorage.getItem("userInfo")
@@ -23,7 +30,7 @@ axios.interceptors.request.use(
 );
 
 // Response interceptor (401 → refresh 시도)
-axios.interceptors.response.use(
+api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
@@ -40,17 +47,25 @@ axios.interceptors.response.use(
 
       if (userInfo && userInfo.refresh) {
         try {
-          const { data } = await axios.post(
+          const { data } = await api.post(
             '/api/users/refresh/',
             { refresh: userInfo.refresh },
             { headers: { 'Content-Type': 'application/json' } }
           );
 
           const newUserInfo = { ...userInfo, access: data.access };
+
+          // localStorage 갱신
           localStorage.setItem('userInfo', JSON.stringify(newUserInfo));
 
+          // Redux store 갱신
+          store.dispatch({
+            type: USER_LOGIN_SUCCESS,
+            payload: newUserInfo,
+          });
+
           originalRequest.headers.Authorization = `Bearer ${data.access}`;
-          return axios(originalRequest);
+          return api(originalRequest);
         } catch (refreshError) {
           store.dispatch(logout());
           window.location.href = '/login';
@@ -61,3 +76,5 @@ axios.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export default api;
