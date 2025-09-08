@@ -3,8 +3,9 @@ from django.conf import settings
 import os
 
 class LLMRecommendationService:
-    def __init__(self):
+    def __init__(self, request=None):
         self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        self.request = request
 
     # OpenAI GPT를 활용해서 개인화된 추천 이유를 생성
     def generate_recommendations_with_reasons(self, user_profile, candidate_products, num_recommendations=5):
@@ -211,13 +212,17 @@ class LLMRecommendationService:
                     continue
 
                 used_product_ids.add(product._id)
+
+                image_url = ''
+                if self.request and product.image and hasattr(product.image, 'url'):
+                    image_url = self.request.build_absolute_uri(product.image.url)
                 
                 # 4단계: 완전한 추천 객체 생성
                 final_recommendations.append({
-                    'product': product, # Django 모델 객체
-                    'reason': rec.get('reason', '이 상품을 추천드립니다.'), # GPT 추천 이유
-                    'score': rec.get('score', 5), # GPT 점수
-                    'product_data': { # 프론트엔드용 데이터
+                    'product': product,
+                    'reason': rec.get('reason', '이 상품을 추천드립니다.'),
+                    'score': rec.get('score', 5),
+                    'product_data': {
                         'id': product._id,
                         'name': product.name,
                         'category': product.category,
@@ -225,7 +230,7 @@ class LLMRecommendationService:
                         'price': product.price,
                         'rating': product.rating,
                         'num_reviews': product.numReviews,
-                        'image': product.image.url if product.image else '',
+                        'image': image_url, # 수정된 전체 URL 사용
                         'description': product.description
                     }
                 })
@@ -246,10 +251,15 @@ class LLMRecommendationService:
         
         recommendations = []
         for i, product in enumerate(products):
+
+            image_url = ''
+            if self.request and product.image and hasattr(product.image, 'url'):
+                image_url = self.request.build_absolute_uri(product.image.url)
+
             recommendations.append({
                 'product': product,
-                'reason': fallback_reasons[i % len(fallback_reasons)], # 순환 배정
-                'score': 7, # 고정 점수 (중간값)
+                'reason': fallback_reasons[i % len(fallback_reasons)],
+                'score': 7,
                 'product_data': {
                     'id': product._id,
                     'name': product.name,
@@ -258,7 +268,7 @@ class LLMRecommendationService:
                     'price': product.price,
                     'rating': product.rating,
                     'num_reviews': product.numReviews,
-                    'image': product.image.url if product.image else '',
+                    'image': image_url,
                     'description': product.description
                 }
             })

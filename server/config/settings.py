@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'base',  # 사용자 앱
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    "django_extensions",
 ]
 
 MIDDLEWARE = [
@@ -116,7 +117,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-MEDIA_URL = '/media/'   # 절대 URL ❌
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # CORS

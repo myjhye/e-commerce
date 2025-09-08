@@ -5,9 +5,29 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 # 상품 직렬화
 class ProductSerializer(serializers.ModelSerializer):
+    # 1. image 필드를 전체 URL로 변환하기 위한 커스텀 필드 선언
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = Product
         fields = '__all__' # Product 모델의 모든 필드를 JSON으로 변환
+
+    # 2. 'image' 필드의 값을 어떻게 만들지 정의하는 메소드
+    def get_image(self, obj):
+        # self.context에서 request 객체를 가져옴
+        request = self.context.get('request')
+        
+        # obj.image가 존재하고, url 속성이 있는지 확인
+        if obj.image and hasattr(obj.image, 'url'):
+            # request.build_absolute_uri()를 사용해 전체 URL 생성
+            return request.build_absolute_uri(obj.image.url)
+            
+        # 이미지가 없는 경우, placeholder.png의 전체 URL을 제공할 수도 있습니다.
+        # 혹은 그냥 빈 문자열이나 None을 반환해도 됩니다.
+        if request:
+            return request.build_absolute_uri('/media/placeholder.png') # settings.py의 MEDIA_URL을 기준으로
+            
+        return None
 
 
 # 사용자 직렬화

@@ -27,7 +27,7 @@ def get_user_recommendations(request):
             })
         
         # 3. LLM으로 추천 이유 생성
-        llm_service = LLMRecommendationService()
+        llm_service = LLMRecommendationService(request=request)
         recommendations = llm_service.generate_recommendations_with_reasons(
             user_profile, candidate_products, num_recommendations=5
         )

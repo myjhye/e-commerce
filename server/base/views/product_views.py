@@ -17,7 +17,7 @@ def getProducts(request):
     
     paginator = PageNumberPagination()  # DRF의 페이지네이션 클래스 사용 (설정된 PAGE_SIZE에 따라 자동 분할)
     paginated_products = paginator.paginate_queryset(products, request) # 요청(request)에 담긴 page 정보에 따라 products를 자동으로 슬라이스함
-    serializer = ProductSerializer(paginated_products, many=True) # 슬라이스된 상품 목록을 직렬화 (JSON 형태로 변경)
+    serializer = ProductSerializer(paginated_products, many=True, context={'request': request})
     
     response = paginator.get_paginated_response(serializer.data) # 기본 응답 가져오기
     
@@ -36,7 +36,7 @@ def getProducts(request):
 @api_view(['GET'])
 def getProduct(request, pk):
     product = get_object_or_404(Product, _id=pk) # pk(기본키)를 기준으로 해당 상품 하나만 조회 (존재하지 않는 상품일 경우 404 반환)
-    serializer = ProductSerializer(product, many=False) # 단일 상품 객체를 JSON으로 직렬화
+    serializer = ProductSerializer(product, many=False, context={'request': request}) # 단일 상품 객체를 JSON으로 직렬화
     return Response(serializer.data) # 직렬화된 데이터를 응답으로 반환
 
 
@@ -59,7 +59,7 @@ def createProduct(request):
         image=data.get('image', None)  # 이미지 URL 또는 업로드 파일
     )
 
-    serializer = ProductSerializer(product, many=False)
+    serializer = ProductSerializer(product, many=False, context={'request': request})
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -85,6 +85,11 @@ def purchaseProduct(request, pk):
         paidAt=datetime.now()
     )
 
+    # OrderItem의 image 필드도 전체 URL로 저장되도록 수정하면 좋습니다.
+    image_url = ''
+    if product.image and hasattr(product.image, 'url'):
+        image_url = request.build_absolute_uri(product.image.url)
+
     # 주문 항목 생성
     OrderItem.objects.create(
         product=product,
@@ -92,7 +97,7 @@ def purchaseProduct(request, pk):
         name=product.name,
         qty=1,
         price=product.price,
-        image=product.image.url if product.image else ''
+        image=image_url # 상대 경로 대신 전체 URL 저장
     )
 
     # 재고 차감
@@ -166,5 +171,5 @@ def add_product_view(request):
 def get_product_views(request):
     user = request.user
     views = ProductView.objects.filter(user=user).order_by('-last_viewed')[:10]
-    serializer = ProductViewSerializer(views, many=True)
+    serializer = ProductViewSerializer(views, many=True, context={'request': request})
     return Response(serializer.data)
