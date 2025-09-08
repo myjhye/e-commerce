@@ -8,7 +8,6 @@
   <img src="https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=Django&logoColor=white">
   <img src="https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=OpenAI&logoColor=white">
   <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=Docker&logoColor=white">
-  <img src="https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=AmazonAWS&logoColor=white">
 </p>
 
 <br>
@@ -16,6 +15,11 @@
 단순한 쇼핑몰 기능을 넘어, AI를 통해 사용자 경험을 향상시키고 운영을 자동화하는 것을 목표로 합니다. <br />
 **Docker**를 활용한 컨테이너 기반으로 설계되어, 일관성 있는 개발 및 실행 환경을 제공합니다.
 
+<br><br>
+
+<img width="2880" height="3297" alt="image" src="https://github.com/user-attachments/assets/98e446f9-25c4-46d5-92c7-fcc038f03fa8" />
+
+<br><br>
 
 ## 목차
 - [주요 기능 (Features)](#주요-기능-features)
@@ -50,7 +54,6 @@
 
 ## 인프라 및 배포 (Infrastructure & Deployment)
 - **Docker 컨테이너화:** Backend(Django), Frontend(React), Proxy(Nginx) 환경 분리 및 `Docker Compose`를 통한 통합 관리
-- **AWS EC2 배포:** Docker 기반 전체 애플리케이션의 클라우드 배포 및 운영 경험
 - **Nginx 리버스 프록시:** API 요청(`/api/*`)과 정적 파일 요청(`/`)을 효율적으로 분배하여 서버 부하 감소
 
 <br>
