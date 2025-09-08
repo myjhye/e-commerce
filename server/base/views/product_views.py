@@ -8,6 +8,7 @@ from base.serializers import ProductSerializer, ProductViewSerializer
 from django.shortcuts import get_object_or_404
 from django.db.models import F
 from datetime import datetime
+from decimal import Decimal, InvalidOperation
 
 # 전체 상품 목록 조회
 @api_view(['GET'])
@@ -43,25 +44,40 @@ def getProduct(request, pk):
 
 # 상품 등록
 @api_view(['POST'])
-@permission_classes([IsAuthenticated]) # 로그인한 사용자만 등록 가능
+@permission_classes([IsAuthenticated])
 def createProduct(request):
     user = request.user
-    data = request.data  # 클라이언트에서 보낸 JSON
+    data = request.data
 
+    try:
+        price_value = data.get('price', '0') # 데이터를 우선 문자열 또는 None으로 받음
+        
+        if price_value == '' or price_value is None:
+            price_value = '0'
+        
+        price = Decimal(price_value)
+
+    except InvalidOperation:
+        # 만약 'abc'처럼 변환이 불가능한 값이 오면, DB에 저장하기 전에
+        # 사용자에게 명확한 에러 메시지를 보내고 함수를 종료합니다.
+        return Response({'detail': '가격에 유효한 숫자를 입력해주세요.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 이 아래 코드는 price가 완벽하게 검증된 Decimal 타입일 때만 실행됩니다.
     product = Product.objects.create(
-        user=user, # 상품 등록자
+        user=user,
         name=data.get('name', ''),
-        price=data.get('price', 0),
+        price=price,
         brand=data.get('brand', ''),
         category=data.get('category', ''),
         description=data.get('description', ''),
         countInStock=data.get('countInStock', 0),
-        image=data.get('image', None)  # 이미지 URL 또는 업로드 파일
+        image=data.get('image', None),
+        rating=0
     )
 
+    # 이제 Serializer도 문제 없이 동작할 것입니다.
     serializer = ProductSerializer(product, many=False, context={'request': request})
     return Response(serializer.data, status=status.HTTP_201_CREATED)
-
 
 
 # 상품 구매
