@@ -2,40 +2,49 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Product, Review, ProductView, Order, OrderItem
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.conf import settings
 
 # 상품 직렬화
 class ProductSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
-    price = serializers.SerializerMethodField()
-    rating = serializers.SerializerMethodField()
+    user = serializers.ReadOnlyField(source='user.username')
+    
+    # image 필드를 ImageField로 변경하여 파일 업로드를 처리할 수 있도록 합니다.
+    # required=False, allow_null=True는 이미지 없이 상품을 생성하는 것을 허용합니다.
+    image = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = Product
-        fields = [
-            '_id', 'user', 'name', 'image', 'brand', 'category', 'description', 
-            'rating', 'numReviews', 'price', 'countInStock', 'createdAt'
-        ]
+        fields = '__all__'
+    
+    # get_image 메서드는 삭제합니다.
 
-    def get_image(self, obj):
+    def to_representation(self, instance):
+        """
+        객체를 JSON으로 변환(직렬화)할 때 호출되는 메서드입니다.
+        여기서 이미지 URL을 절대 경로로 변환하고, 이미지가 없을 경우 placeholder 경로를 제공합니다.
+        """
+        # 기본 직렬화 결과를 가져옵니다.
+        representation = super().to_representation(instance)
         request = self.context.get('request')
-        if obj.image and hasattr(obj.image, 'url'):
-            return request.build_absolute_uri(obj.image.url)
-        # 이미지가 없는 경우 기본 이미지의 전체 URL을 제공할 수 있습니다.
-        if request:
-            # default='/placeholder.png'를 사용하고 있으므로, 해당 경로를 기반으로 URL 생성
-            return request.build_absolute_uri(settings.MEDIA_URL + 'placeholder.png')
-        return None
 
-    def get_price(self, obj):
-        if obj.price is None:
-            return None
-        # Decimal 타입을 문자열로 변환하여 JSON 변환 시 발생할 수 있는 오류를 원천 차단
-        return str(obj.price)
+        # Product 인스턴스에 이미지가 실제로 존재하는지 확인합니다.
+        if instance.image and hasattr(instance.image, 'url'):
+            # request 객체가 존재하면 절대 URL(http://...)을 생성합니다.
+            if request:
+                representation['image'] = request.build_absolute_uri(instance.image.url)
+            else:
+                # request가 없으면 상대 URL(/media/...)을 그대로 사용합니다.
+                representation['image'] = instance.image.url
+        # Product 인스턴스에 이미지가 없는 경우
+        else:
+            # request 객체가 있으면 placeholder 이미지의 절대 URL을 생성합니다.
+            if request:
+                representation['image'] = request.build_absolute_uri(settings.MEDIA_URL + 'placeholder.png')
+            else:
+                # request가 없으면 None을 반환하거나 상대 경로를 지정할 수 있습니다.
+                representation['image'] = None
 
-    def get_rating(self, obj):
-        if obj.rating is None:
-            return None
-        return str(obj.rating)
+        return representation
 
 
 # 사용자 직렬화
