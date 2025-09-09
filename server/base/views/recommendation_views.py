@@ -2,6 +2,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+import traceback
 
 from base.services.user_profile_service import UserProfileService
 from base.services.candidate_filter_service import CandidateFilterService
@@ -46,6 +47,8 @@ def get_user_recommendations(request):
         })
         
     except Exception as e:
+        print("🔥🔥🔥 추천 생성 중 심각한 에러 발생! 🔥🔥🔥")
+        traceback.print_exc() # 전체 Traceback을 터미널에 강제 출력
         return Response({
             'error': f'추천 생성 중 오류가 발생했습니다: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

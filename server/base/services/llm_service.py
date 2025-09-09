@@ -1,10 +1,16 @@
 from openai import OpenAI
 from django.conf import settings
 import os
+import httpx
 
 class LLMRecommendationService:
     def __init__(self, request=None):
-        self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        http_client = httpx.Client(proxy=None)
+        # 생성한 클라이언트를 OpenAI 클라이언트를 만들 때 주입합니다.
+        self.client = OpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY"),
+            http_client=http_client
+        )
         self.request = request
 
     # OpenAI GPT를 활용해서 개인화된 추천 이유를 생성
