@@ -9,7 +9,6 @@ import ProductReviewForm from '../components/ProductReviewForm'
 import ProductReviewList from '../components/ProductReviewList'
 import ReviewAIAnalysis from '../components/ReviewAIAnalysis'
 import Paginate from '../components/Paginate'
-import axios from 'axios';
 import api from '../utils/axiosConfig';
 
 export default function ProductScreen() {
@@ -59,7 +58,7 @@ export default function ProductScreen() {
     // 상품 조회수 트래킹
     useEffect(() => {
         if (!loading && product?._id) {
-            axios.post('/api/products/view/', { product_id: id })
+            api.post('/api/products/view/', { product_id: id })
                 .catch(() => { /* 실패해도 무시 */ })
         }
     }, [id, loading, product?._id]);
@@ -107,8 +106,9 @@ export default function ProductScreen() {
 
     return (
         <div>
+            {/* [수정] 영문 -> 한글 */}
             <Link to="/" className="btn btn-light my-3">
-                Go Back
+                뒤로 가기
             </Link>
 
             <Row>
@@ -125,17 +125,18 @@ export default function ProductScreen() {
                         <ListGroup.Item>
                             <Rating
                                 value={product.rating}
-                                text={`${product.numReviews} reviews`}
+                                // [수정] 영문 -> 한글
+                                text={`${product.numReviews}개 리뷰`}
                                 color="#f8e825"
                             />
                         </ListGroup.Item>
 
                         <ListGroup.Item>
-                            ${product.price}
+                            {product.price ? `${new Intl.NumberFormat('ko-KR').format(product.price)}원` : '가격 정보 없음'}
                         </ListGroup.Item>
 
                         <ListGroup.Item>
-                            {product.description}
+                            설명: {product.description}
                         </ListGroup.Item>
                     </ListGroup>
                 </Col>
@@ -145,18 +146,20 @@ export default function ProductScreen() {
                         <ListGroup variant="flush">
                             <ListGroup.Item>
                                 <Row>
-                                    <Col>Price:</Col>
+                                    <Col>가격:</Col>
                                     <Col>
-                                        <strong>${product.price}</strong>
+                                        <strong>{product.price ? `${new Intl.NumberFormat('ko-KR').format(product.price)}원` : '가격 정보 없음'}</strong>
                                     </Col>
                                 </Row>
                             </ListGroup.Item>
 
                             <ListGroup.Item>
                                 <Row>
-                                    <Col>Status:</Col>
+                                    {/* [수정] 영문 -> 한글 */}
+                                    <Col>재고 상태:</Col>
                                     <Col>
-                                        {product.countInStock > 0 ? 'In Stock' : 'Out of Stock'}
+                                        {/* [수정] 영문 -> 한글 */}
+                                        {product.countInStock > 0 ? '재고 있음' : '재고 없음'}
                                     </Col>
                                 </Row>
                             </ListGroup.Item>
@@ -164,7 +167,8 @@ export default function ProductScreen() {
                             {product.countInStock > 0 && (
                                 <ListGroup.Item>
                                     <Row>
-                                        <Col>Qty</Col>
+                                        {/* [수정] 영문 -> 한글 */}
+                                        <Col>남은 수량</Col>
                                         <Col className='my-1'>
                                             <span>
                                                 <span style={{ fontWeight: 'bold', color: '#d9534f' }}>{product.countInStock}</span>개 남음

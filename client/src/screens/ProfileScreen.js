@@ -46,10 +46,10 @@ export default function ProfileScreen() {
     // 가격대별 상품 개수
     const priceData = (() => {
         const bins = [
-            { range: '0~100', min: 0, max: 100 },
-            { range: '101~500', min: 101, max: 500 },
-            { range: '501~1000', min: 501, max: 1000 },
-            { range: '1001+', min: 1001, max: Infinity },
+            { range: '0~10,000원', min: 0, max: 10000 },
+            { range: '10,001~50,000원', min: 10001, max: 50000 },
+            { range: '50,001~100,000원', min: 50001, max: 100000 },
+            { range: '100,001원 이상', min: 100001, max: Infinity },
         ]
         const result = bins.map(b => ({ range: b.range, count: 0 }))
         orders.forEach(order => {
@@ -154,7 +154,7 @@ export default function ProfileScreen() {
                                                 <div className="flex-grow-1">
                                                     <div className="fs-5 mb-1">{item.name}</div>
                                                 </div>
-                                                <div className="fs-5 fw-bold">₩{item.price.toLocaleString()}</div>
+                                                <div className="fs-5 fw-bold">{item.price.toLocaleString()}원</div>
                                             </div>
                                         ))}
                                     </Card.Body>

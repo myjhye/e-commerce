@@ -151,7 +151,9 @@ export default function RecentScreen() {
                                                 <div className="flex-grow-1">
                                                     <div className="fs-5 mb-1">{view.product.name}</div>
                                                 </div>
-                                                <div className="fs-5 fw-bold">₩{view.product.price.toLocaleString()}</div>
+                                                <div className="fs-5 fw-bold">
+                                                    {new Intl.NumberFormat('ko-KR').format(view.product.price)}원
+                                                </div>
                                             </div>
                                         </Card.Body>
                                     </Card>
