@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Form, Button, Row, Col, Alert, Spinner, Card, Badge } from 'react-bootstrap';
 import api from '../utils/axiosConfig'
 
@@ -7,15 +7,18 @@ export default function ProductCreateScreen() {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [priceError, setPriceError] = useState('');
-  const [image, setImage] = useState('');
+  const [image, setImage] = useState(null); 
+  const [imagePreview, setImagePreview] = useState('');
   const [brand, setBrand] = useState('');
   const [category, setCategory] = useState('');
   const [countInStock, setCountInStock] = useState(0);
   const [description, setDescription] = useState('');
-  const [uploading, setUploading] = useState(false);
+  
   const [loadingCreate, setLoadingCreate] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
   const [errorCreate, setErrorCreate] = useState('');
+
+  const navigate = useNavigate();
   
   // LangGraph 상태 관리
   const [langGraphAvailable, setLangGraphAvailable] = useState(false);
@@ -64,117 +67,113 @@ export default function ProductCreateScreen() {
       return; // 에러가 있으면 제출 중단
     }
 
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('price', price);
+    formData.append('brand', brand);
+    formData.append('category', category);
+    formData.append('description', description);
+    formData.append('countInStock', countInStock);
+    
+    // image state에 파일 객체가 있으면 FormData에 추가합니다.
+    if (image) {
+      formData.append('image', image);
+    }
+
     setLoadingCreate(true);
     setErrorCreate('');
 
     try {
-      const { data } = await api.post('/api/products/create/', {
-        name,
-        price,
-        image,
-        brand,
-        category,
-        description,
-        countInStock
+      // 1. body를 JSON 객체가 아닌 formData 객체로 전달합니다.
+      // 2. headers에 'Content-Type': 'multipart/form-data'를 명시합니다.
+      const { data } = await api.post('/api/products/create/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
       alert('상품 등록 성공!');
       console.log('등록된 상품:', data);
+      
+      // 성공 후 상품 목록 페이지 등으로 이동할 수 있습니다.
+      navigate('/'); 
 
-      // 폼 리셋
-      setName('');
-      setPrice('');
-      setImage('');
-      setBrand('');
-      setCategory('');
-      setDescription('');
-      setCountInStock(0);
-      setAiDebugInfo(null);
     } catch (error) {
-      console.error('상품 등록 실패:', error);
-      setErrorCreate('상품 등록에 실패했습니다.');
+      console.error('상품 등록 실패:', error.response ? error.response.data : error.message);
+      setErrorCreate('상품 등록에 실패했습니다. (콘솔을 확인해주세요)');
     } finally {
       setLoadingCreate(false);
     }
   };
 
-  // 이미지 업로드 API 호출
-  const uploadFileHandler = async (e) => {
+  // 파일을 선택했을 때 state에 파일 객체와 미리보기 URL을 저장하는 함수
+  const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('image', file);
-
-    setUploading(true);
-
-    try {
-      const { data } = await api.post('/api/upload/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      setImage(data.image_name);  // 파일 이름만 저장
-    } catch (error) {
-      console.error('이미지 업로드 에러:', error.response ? error.response.data : error.message);
-    } finally {
-      setUploading(false);
+    if (file) {
+      setImage(file); // 실제 파일 객체를 image state에 저장
+      setImagePreview(URL.createObjectURL(file)); // 미리보기용 임시 URL 생성
     }
   };
 
-  // 업데이트된 AI 자동 생성 함수
+  // AI 자동 생성 함수
   const generateAIInfo = async () => {
-    if (!name.trim()) {
-      alert('상품명을 먼저 입력해주세요!');
+  if (!name.trim()) {
+    alert('상품명을 먼저 입력해주세요!');
+    return;
+  }
+  // 이제 image state(파일 객체)를 직접 확인합니다.
+  if (!image) { 
+    alert('상품 이미지를 업로드해주세요!');
+    return;
+  }
+
+  setLoadingAI(true);
+  setAiDebugInfo(null);
+
+  // AI 분석을 위해 FormData를 새로 생성합니다.
+  const aiFormData = new FormData();
+  aiFormData.append('name', name);
+  aiFormData.append('image', image); // 실제 파일 객체를 추가
+
+  try {
+    const endpoint = useLangGraph && langGraphAvailable 
+      ? '/api/ai/generate-product-info-langgraph/'
+      : '/api/ai/generate-product-info/';
+    
+    const debugParam = useLangGraph ? '?debug=true' : '';
+    
+    // api.post 요청을 FormData 방식으로 변경합니다.
+    const { data } = await api.post(`${endpoint}${debugParam}`, aiFormData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    setBrand(data.brand);
+    setCategory(data.category);
+    setDescription(data.description);
+    
+    if (data.debug_info) {
+      setAiDebugInfo(data.debug_info);
+    }
+    
+    console.log('AI 생성 결과:', data);
+    
+  } catch (error) {
+    console.error('AI 생성 실패:', error.response ? error.response.data : error.message);
+    
+    if (useLangGraph && error.response?.status === 501) {
+      alert('LangGraph 처리 실패. 기본 AI로 재시도합니다.');
+      setUseLangGraph(false);
+      setTimeout(() => generateAIInfo(), 500);
       return;
     }
-    if (!image) {
-      alert('상품 이미지를 업로드해주세요!');
-      return;
-    }
-
-    setLoadingAI(true);
-    setAiDebugInfo(null);
-
-    try {
-      // LangGraph 사용 여부에 따라 엔드포인트 선택
-      const endpoint = useLangGraph && langGraphAvailable 
-        ? '/api/ai/generate-product-info-langgraph/'
-        : '/api/ai/generate-product-info/';
-      
-      const debugParam = useLangGraph ? '?debug=true' : '';
-      
-      const { data } = await api.post(`${endpoint}${debugParam}`, {
-        name,
-        image_url: `/media/${image}`
-      });
-
-      setBrand(data.brand);
-      setCategory(data.category);
-      setDescription(data.description);
-      
-      // 디버그 정보 저장 (LangGraph 사용시)
-      if (data.debug_info) {
-        setAiDebugInfo(data.debug_info);
-      }
-      
-      console.log('AI 생성 결과:', data);
-      
-    } catch (error) {
-      console.error('AI 생성 실패:', error.response ? error.response.data : error.message);
-      
-      // LangGraph 실패시 기본 API로 폴백
-      if (useLangGraph && error.response?.status === 501) {
-        alert('LangGraph 처리 실패. 기본 AI로 재시도합니다.');
-        setUseLangGraph(false);
-        // 재귀 호출로 기본 API 시도
-        setTimeout(() => generateAIInfo(), 500);
-        return;
-      }
-      
-      alert('AI 생성에 실패했습니다.');
-    } finally {
-      setLoadingAI(false);
-    }
-  };
+    
+    alert('AI 생성에 실패했습니다.');
+  } finally {
+    setLoadingAI(false);
+  }
+};
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', paddingTop: '10px', paddingBottom: '30px' }}>
@@ -204,22 +203,15 @@ export default function ProductCreateScreen() {
               <Form.Control
                 type="file"
                 accept="image/*"
-                onChange={uploadFileHandler}
+                onChange={handleFileChange}
               />
             </Form.Group>
 
-            {uploading && (
-              <div className="text-center mt-2">
-                <Spinner animation="border" size="sm" />
-                <span className="ms-2">Uploading...</span>
-              </div>
-            )}
-
-            {image && !uploading && (
+            {imagePreview && (
               <div className="mt-3">
                 <p className="mb-2"><strong>Preview:</strong></p>
                 <img
-                  src={`/media/${image}`}
+                  src={imagePreview}
                   alt="Product preview"
                   className="img-thumbnail"
                   style={{ width: '150px', height: '150px', objectFit: 'cover' }}
@@ -416,13 +408,7 @@ export default function ProductCreateScreen() {
         </Form.Group>
 
         {/* 등록 버튼 */}
-        <Button
-          type="submit"
-          variant="primary"
-          className="w-100"
-          size="lg"
-          disabled={loadingCreate || uploading}
-        >
+        <Button type="submit" variant="primary" className="w-100" size="lg" disabled={loadingCreate}>
           {loadingCreate ? '등록 중...' : '상품 등록'}
         </Button>
       </Form>
