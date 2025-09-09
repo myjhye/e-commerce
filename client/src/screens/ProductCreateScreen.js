@@ -5,7 +5,8 @@ import api from '../utils/axiosConfig'
 
 export default function ProductCreateScreen() {
   const [name, setName] = useState('');
-  const [price, setPrice] = useState(0);
+  const [price, setPrice] = useState('');
+  const [priceError, setPriceError] = useState('');
   const [image, setImage] = useState('');
   const [brand, setBrand] = useState('');
   const [category, setCategory] = useState('');
@@ -40,10 +41,31 @@ export default function ProductCreateScreen() {
     }
   };
 
+  // 가격 입력 처리 핸들러
+  const handlePriceChange = (e) => {
+      const value = e.target.value;
+      // 정규식을 사용하여 숫자 또는 소수점 둘째 자리까지만 허용
+      const regex = /^\d*\.?\d{0,2}$/;
+
+      if (regex.test(value) || value === '') {
+          setPrice(value);
+          setPriceError(''); // 유효한 값이면 에러 메시지 초기화
+      } else {
+          setPriceError('숫자 또는 소수점 둘째 자리까지만 입력해주세요.');
+      }
+  };
+
   // 상품 등록 API 호출
   const submitHandler = async (e) => {
     e.preventDefault();
+
+    if (priceError || price === '' || isNaN(Number(price))) {
+      setPriceError('유효한 가격을 입력해야 합니다.');
+      return; // 에러가 있으면 제출 중단
+    }
+
     setLoadingCreate(true);
+    setErrorCreate('');
 
     try {
       const { data } = await api.post('/api/products/create/', {
@@ -61,7 +83,7 @@ export default function ProductCreateScreen() {
 
       // 폼 리셋
       setName('');
-      setPrice(0);
+      setPrice('');
       setImage('');
       setBrand('');
       setCategory('');
@@ -366,16 +388,18 @@ export default function ProductCreateScreen() {
 
         {/* 가격 */}
         <Form.Group controlId='price' className='my-3'>
-          <Form.Label>가격</Form.Label>
-          <Form.Control
-            type="number"
-            placeholder="예: 359000"
-            value={price}
-            onChange={(e) => setPrice(Number(e.target.value))}
-            min="0"
-            step="0.01"
-            required
-          />
+            <Form.Label>가격</Form.Label>
+            <Form.Control
+                type="text"
+                inputMode="decimal"
+                value={price}
+                onChange={handlePriceChange}
+                isInvalid={!!priceError}
+                required
+            />
+            <Form.Control.Feedback type="invalid">
+                {priceError}
+            </Form.Control.Feedback>
         </Form.Group>
 
         {/* 재고 */}
