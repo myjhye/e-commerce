@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.conf import settings
 import base64
 import os
+import httpx
 
 from base.services.review_analysis_service import get_review_analysis_service
 from base.models import Product
@@ -44,10 +45,10 @@ def generateProductInfo(request):
     if not image_url:
         return Response({"error": "상품 이미지 URL이 필요합니다."}, status=400)
     
-    client = OpenAI()
-
     # 1. 실제 서버 파일 경로로 변환
-    image_path = os.path.join(settings.MEDIA_ROOT, image_url.replace("/media/", ""))
+    # image_url은 '/media/이미지이름.webp' 형태이므로 앞부분을 잘라냄
+    relative_image_path = image_url.replace("/media/", "", 1)
+    image_path = os.path.join(settings.MEDIA_ROOT, relative_image_path)
 
     if not os.path.exists(image_path):
         return Response({"error": "이미지를 찾을 수 없습니다."}, status=404)
@@ -58,24 +59,36 @@ def generateProductInfo(request):
 
     # 3. GPT 프롬프트
     prompt = f"""
-                당신은 전자상거래 상품 정보 분석 전문가입니다.
+        당신은 전자상거래 상품 정보 분석 전문가입니다.
 
-                상품명: "{product_name}"
+        상품명: "{product_name}"
 
-                아래 규칙을 지켜주세요:
-                1. 브랜드 추출: 실제 존재하는 브랜드명을 영문으로 표기 (없으면 "Unknown")
-                2. 카테고리 선택: 반드시 {", ".join(ALLOWED_CATEGORIES)} 중 하나만 선택
-                3. 상품 설명: 100자 이상, 매력적인 마케팅 문구
+        아래 규칙을 지켜주세요:
+        1. 브랜드 추출: 실제 존재하는 브랜드명을 영문으로 표기 (없으면 "Unknown")
+        2. 카테고리 선택: 반드시 {", ".join(ALLOWED_CATEGORIES)} 중 하나만 선택
+        3. 상품 설명: 100자 이상, 매력적인 마케팅 문구
 
-                응답 형식 (JSON):
-                {{
-                    "brand": "브랜드명",
-                    "category": "카테고리명",
-                    "description": "상품 설명"
-                }}
-            """
+        응답 형식 (JSON):
+        {{
+            "brand": "브랜드명",
+            "category": "카테고리명",
+            "description": "상품 설명"
+        }}
+        """
 
     try:
+        # --- ⭐️ 최종 수정된 부분: OpenAI 클라이언트를 가장 명시적인 방법으로 생성 ---
+        
+        # 1. httpx 클라이언트를 가장 기본적인 형태로 생성합니다.
+        http_client = httpx.Client()
+        
+        # 2. settings.py에서 API 키를 직접 가져옵니다.
+        api_key = settings.OPENAI_API_KEY
+        
+        # 3. API 키와 우리가 만든 http 클라이언트를 모두 직접 전달하여 OpenAI 클라이언트를 생성합니다.
+        client = OpenAI(api_key=api_key, http_client=http_client)
+        # --------------------------------------------------------------------------
+
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -95,9 +108,10 @@ def generateProductInfo(request):
         raw_text = response.choices[0].message.content.strip()
         print("🔥 GPT 응답:", raw_text)
 
+        # GPT 응답이 마크다운 코드 블록으로 감싸져 오는 경우 처리
         if raw_text.startswith("```"):
             raw_text = raw_text.strip("`")
-            raw_text = raw_text.replace("json", "")
+            raw_text = raw_text.replace("json", "", 1) # 첫 번째 'json'만 제거
             raw_text = raw_text.strip()
 
         try:
@@ -105,7 +119,7 @@ def generateProductInfo(request):
         except json.JSONDecodeError:
             return JsonResponse({"error": "AI 응답 JSON 파싱 실패", "raw_response": raw_text}, status=500)
 
-        # 카테고리 안전망
+        # 카테고리 안전망: AI가 허용되지 않은 카테고리를 생성했을 경우 기본값으로 변경
         if data.get("category") not in ALLOWED_CATEGORIES:
             data["category"] = "생활용품"
 
